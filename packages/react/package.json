@@ -41,7 +41,12 @@
     "drawing",
     "canvas"
   ],
-  "author": "",
+  "author": "usapopopooon <usapopopooon@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usapopopooon/stroke-stabilizer"
+  },
+  "homepage": "https://github.com/usapopopooon/stroke-stabilizer",
   "sideEffects": false
 }

@@ -44,4 +44,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint + Prettier configuration
 - TypeScript strict mode
 
-[0.1.0]: https://github.com/usapo/stroke-stabilizer/releases/tag/v0.1.0
+[0.1.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.0
