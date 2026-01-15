@@ -82,11 +82,6 @@ Creates a stabilized pointer with a preset configuration.
 
 Returns a `StabilizedPointer` instance.
 
-## References
-
-- [The Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)
-- [1€ Filter Paper](https://cristal.univ-lille.fr/~casiez/1euro/)
-
 ## License
 
 MIT
