@@ -44,11 +44,6 @@ canvas.addEventListener('pointermove', (e) => {
 
 See [@stroke-stabilizer/core README](./packages/core/README.md) for full documentation.
 
-## References
-
-- [The Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)
-- [畳み込みフィルタの解説 (Zenn)](https://zenn.dev/yoshi333/articles/72dc07c6ef6711)
-
 ## License
 
 MIT
