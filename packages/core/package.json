@@ -1,6 +1,6 @@
 {
   "name": "@stroke-stabilizer/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Dynamic Pipeline Pattern for real-time stroke stabilization",
   "type": "module",
   "main": "./dist/index.cjs",
