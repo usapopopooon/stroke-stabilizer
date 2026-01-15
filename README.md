@@ -4,11 +4,11 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 
 ## Packages
 
-| Package                                      | Description               |
-| -------------------------------------------- | ------------------------- |
-| [@stroke-stabilizer/core](./packages/core)   | Core library (vanilla JS) |
-| [@stroke-stabilizer/react](./packages/react) | React hooks               |
-| [@stroke-stabilizer/vue](./packages/vue)     | Vue composables           |
+| Package | Version | Description |
+| ------- | ------- | ----------- |
+| [@stroke-stabilizer/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core) | Core library (vanilla JS) |
+| [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks |
+| [@stroke-stabilizer/vue](./packages/vue) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue) | Vue composables |
 
 ## Features
 
