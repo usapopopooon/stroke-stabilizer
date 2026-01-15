@@ -11,6 +11,16 @@ interface PostProcessor {
 }
 
 /**
+ * Batch processing configuration
+ */
+export interface BatchConfig {
+  /** Callback when a batch of points is processed */
+  onBatch?: (points: PointerPoint[]) => void
+  /** Callback for each processed point */
+  onPoint?: (point: PointerPoint) => void
+}
+
+/**
  * Dynamic Pipeline Pattern implementation
  *
  * A pipeline that allows adding, removing, and updating filters at runtime.
@@ -36,6 +46,11 @@ export class StabilizedPointer {
   private filters: Filter[] = []
   private postProcessors: PostProcessor[] = []
   private buffer: PointerPoint[] = []
+
+  // Batch processing fields
+  private batchConfig: BatchConfig | null = null
+  private pendingPoints: PointerPoint[] = []
+  private rafId: number | null = null
 
   /**
    * Add a filter to the pipeline
@@ -225,6 +240,11 @@ export class StabilizedPointer {
    * Buffer is cleared and filters are reset
    */
   finish(): Point[] {
+    // Flush any pending batched points first
+    if (this.batchConfig) {
+      this.flushBatch()
+    }
+
     let points: Point[] = [...this.buffer]
 
     // Apply post-processors in order
@@ -239,6 +259,163 @@ export class StabilizedPointer {
     this.reset()
 
     return points
+  }
+
+  // ========================================
+  // Batch processing layer (rAF)
+  // ========================================
+
+  /**
+   * Enable requestAnimationFrame batch processing
+   *
+   * When enabled, points queued via queue() are batched and processed
+   * on the next animation frame, reducing CPU load for high-frequency
+   * pointer events.
+   *
+   * @returns this (for method chaining)
+   *
+   * @example
+   * ```ts
+   * const pointer = new StabilizedPointer()
+   *   .addFilter(noiseFilter({ minDistance: 2 }))
+   *   .enableBatching({
+   *     onBatch: (points) => drawPoints(points),
+   *     onPoint: (point) => updatePreview(point)
+   *   })
+   *
+   * canvas.onpointermove = (e) => {
+   *   pointer.queue({ x: e.clientX, y: e.clientY, timestamp: e.timeStamp })
+   * }
+   * ```
+   */
+  enableBatching(config: BatchConfig = {}): this {
+    this.batchConfig = config
+    return this
+  }
+
+  /**
+   * Disable batch processing
+   * Flushes any pending points before disabling
+   * @returns this (for method chaining)
+   */
+  disableBatching(): this {
+    this.flushBatch()
+    this.batchConfig = null
+    return this
+  }
+
+  /**
+   * Check if batch processing is enabled
+   */
+  get isBatchingEnabled(): boolean {
+    return this.batchConfig !== null
+  }
+
+  /**
+   * Queue a point for batch processing
+   *
+   * If batching is enabled, the point is queued and processed on the next
+   * animation frame. If batching is disabled, the point is processed immediately.
+   *
+   * @returns this (for method chaining, useful for queueing multiple points)
+   */
+  queue(point: PointerPoint): this {
+    if (this.batchConfig) {
+      this.pendingPoints.push(point)
+      this.scheduleFlush()
+    } else {
+      // Fallback to immediate processing
+      this.process(point)
+    }
+    return this
+  }
+
+  /**
+   * Queue multiple points for batch processing
+   * @returns this (for method chaining)
+   */
+  queueAll(points: PointerPoint[]): this {
+    if (this.batchConfig) {
+      this.pendingPoints.push(...points)
+      this.scheduleFlush()
+    } else {
+      this.processAll(points)
+    }
+    return this
+  }
+
+  /**
+   * Force flush pending batched points immediately
+   * @returns Array of processed points
+   */
+  flushBatch(): PointerPoint[] {
+    this.cancelScheduledFlush()
+    return this.processPendingPoints()
+  }
+
+  /**
+   * Get number of pending points in the batch queue
+   */
+  get pendingCount(): number {
+    return this.pendingPoints.length
+  }
+
+  // ----------------------------------------
+  // Private batch processing methods
+  // ----------------------------------------
+
+  private scheduleFlush(): void {
+    if (this.rafId !== null) return
+
+    // Use rAF if available, otherwise use setTimeout as fallback
+    if (typeof requestAnimationFrame !== 'undefined') {
+      this.rafId = requestAnimationFrame(() => {
+        this.rafId = null
+        this.processPendingPoints()
+      })
+    } else {
+      // Node.js or non-browser environment fallback
+      this.rafId = setTimeout(() => {
+        this.rafId = null
+        this.processPendingPoints()
+      }, 16) as unknown as number
+    }
+  }
+
+  private cancelScheduledFlush(): void {
+    if (this.rafId === null) return
+
+    if (typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.rafId)
+    } else {
+      clearTimeout(this.rafId)
+    }
+    this.rafId = null
+  }
+
+  private processPendingPoints(): PointerPoint[] {
+    if (this.pendingPoints.length === 0) return []
+
+    const points = this.pendingPoints
+    this.pendingPoints = []
+
+    const results: PointerPoint[] = []
+
+    for (const point of points) {
+      const result = this.process(point)
+      if (result !== null) {
+        results.push(result)
+        // Call onPoint callback for each processed point
+        this.batchConfig?.onPoint?.(result)
+      }
+    }
+
+    // Call onBatch callback with all processed points
+    if (results.length > 0) {
+      this.batchConfig?.onBatch?.(results)
+    }
+
+    return results
   }
 
   private isUpdatableFilter<TParams>(

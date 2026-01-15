@@ -20,27 +20,24 @@ import { useStabilizedPointer } from '@stroke-stabilizer/react'
 import { oneEuroFilter } from '@stroke-stabilizer/core'
 
 function DrawingCanvas() {
-  const pointer = useStabilizedPointer([
-    oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }),
-  ])
+  const { process, reset, pointer } = useStabilizedPointer({
+    level: 50,
+    onPoint: (point) => {
+      draw(point.x, point.y)
+    },
+  })
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    const result = pointer.process({
+    process({
       x: e.clientX,
       y: e.clientY,
       pressure: e.pressure,
       timestamp: e.timeStamp,
     })
-
-    if (result) {
-      draw(result.x, result.y)
-    }
   }
 
   const handlePointerUp = () => {
-    const finalPoints = pointer.finish()
-    // Use finalPoints for final stroke
-    pointer.reset()
+    reset()
   }
 
   return (
@@ -49,38 +46,106 @@ function DrawingCanvas() {
 }
 ```
 
+### With rAF Batch Processing
+
+For high-frequency input devices, use the underlying `StabilizedPointer`'s batch processing:
+
+```tsx
+import { useStabilizedPointer } from '@stroke-stabilizer/react'
+import { useEffect } from 'react'
+
+function DrawingCanvas() {
+  const { pointer } = useStabilizedPointer({ level: 50 })
+
+  useEffect(() => {
+    pointer.enableBatching({
+      onBatch: (points) => drawPoints(points),
+    })
+    return () => pointer.disableBatching()
+  }, [pointer])
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    pointer.queue({
+      x: e.clientX,
+      y: e.clientY,
+      pressure: e.pressure,
+      timestamp: e.timeStamp,
+    })
+  }
+
+  return <canvas onPointerMove={handlePointerMove} />
+}
+```
+
 ### useStabilizationLevel
 
-A simpler hook with preset levels.
+A hook for managing stabilization level state.
 
 ```tsx
 import { useStabilizationLevel } from '@stroke-stabilizer/react'
 
-function DrawingCanvas() {
-  const pointer = useStabilizationLevel('balanced')
-  // 'smooth' | 'responsive' | 'balanced'
+function StabilizationSlider() {
+  const { level, setLevel, isEnabled } = useStabilizationLevel({
+    initialLevel: 50,
+  })
 
-  // ... same usage as useStabilizedPointer
+  return (
+    <div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={level}
+        onChange={(e) => setLevel(Number(e.target.value))}
+      />
+      <span>{level}%</span>
+      {isEnabled && <span>Stabilization enabled</span>}
+    </div>
+  )
 }
 ```
 
 ## API
 
-### useStabilizedPointer(filters?)
+### useStabilizedPointer(options?)
 
 Creates a stabilized pointer instance.
 
-- `filters` - Optional array of filters to apply
+**Options:**
 
-Returns a `StabilizedPointer` instance.
+- `level` - Stabilization level (0-100). Uses preset when specified
+- `filters` - Custom filter array. Used when level is not specified
+- `onPoint` - Callback when a point is processed
 
-### useStabilizationLevel(level)
+**Returns:**
 
-Creates a stabilized pointer with a preset configuration.
+- `process(point)` - Process a single point
+- `processAll(points)` - Process multiple points
+- `flushBuffer()` - Flush internal buffer
+- `reset()` - Reset the pointer state
+- `addFilter(filter)` - Add a filter dynamically
+- `removeFilter(type)` - Remove a filter by type
+- `updateFilter(type, params)` - Update filter parameters
+- `pointer` - Reference to the StabilizedPointer instance
 
-- `level` - `'smooth'` | `'responsive'` | `'balanced'`
+### useStabilizationLevel(options?)
 
-Returns a `StabilizedPointer` instance.
+Manages stabilization level state.
+
+**Options:**
+
+- `initialLevel` - Initial level (default: 0)
+- `min` - Minimum level (default: 0)
+- `max` - Maximum level (default: 100)
+- `onChange` - Callback when level changes
+
+**Returns:**
+
+- `level` - Current level
+- `setLevel(value)` - Set the level
+- `increase(amount?)` - Increase level by amount (default: 10)
+- `decrease(amount?)` - Decrease level by amount (default: 10)
+- `isEnabled` - Whether stabilization is active (level > 0)
 
 ## License
 

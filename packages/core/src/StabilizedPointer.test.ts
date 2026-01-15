@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { StabilizedPointer } from './StabilizedPointer'
 import { noiseFilter } from './filters/NoiseFilter'
 import { kalmanFilter } from './filters/KalmanFilter'
@@ -376,6 +376,292 @@ describe('StabilizedPointer', () => {
 
       // Both realtime filters and post processing applied
       expect(result.length).toBeGreaterThan(0)
+    })
+  })
+
+  // ========================================
+  // Batch Processing (rAF)
+  // ========================================
+
+  describe('batch processing', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    describe('enableBatching / disableBatching', () => {
+      it('should start with batching disabled', () => {
+        expect(pointer.isBatchingEnabled).toBe(false)
+      })
+
+      it('should enable batching with method chaining', () => {
+        const result = pointer.enableBatching()
+
+        expect(result).toBe(pointer)
+        expect(pointer.isBatchingEnabled).toBe(true)
+      })
+
+      it('should disable batching with method chaining', () => {
+        pointer.enableBatching()
+        const result = pointer.disableBatching()
+
+        expect(result).toBe(pointer)
+        expect(pointer.isBatchingEnabled).toBe(false)
+      })
+
+      it('should chain with other methods', () => {
+        const result = pointer
+          .addFilter(noiseFilter({ minDistance: 2 }))
+          .enableBatching({ onBatch: () => {} })
+          .addPostProcess(gaussianKernel({ size: 5 }))
+
+        expect(result).toBe(pointer)
+        expect(pointer.length).toBe(1)
+        expect(pointer.isBatchingEnabled).toBe(true)
+        expect(pointer.postProcessLength).toBe(1)
+      })
+    })
+
+    describe('queue', () => {
+      it('should process immediately when batching disabled', () => {
+        const point = createPoint(10, 20)
+        pointer.queue(point)
+
+        expect(pointer.getBuffer().length).toBe(1)
+        expect(pointer.pendingCount).toBe(0)
+      })
+
+      it('should queue points when batching enabled', () => {
+        pointer.enableBatching()
+        pointer.queue(createPoint(10, 20))
+
+        expect(pointer.pendingCount).toBe(1)
+        expect(pointer.getBuffer().length).toBe(0)
+      })
+
+      it('should support method chaining', () => {
+        pointer.enableBatching()
+        const result = pointer
+          .queue(createPoint(10, 20))
+          .queue(createPoint(30, 40))
+
+        expect(result).toBe(pointer)
+        expect(pointer.pendingCount).toBe(2)
+      })
+
+      it('should process pending points on next frame', () => {
+        pointer.enableBatching()
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+
+        expect(pointer.getBuffer().length).toBe(0)
+
+        vi.runAllTimers()
+
+        expect(pointer.getBuffer().length).toBe(2)
+        expect(pointer.pendingCount).toBe(0)
+      })
+    })
+
+    describe('queueAll', () => {
+      it('should process immediately when batching disabled', () => {
+        const points = [createPoint(10, 20), createPoint(30, 40)]
+        pointer.queueAll(points)
+
+        expect(pointer.getBuffer().length).toBe(2)
+        expect(pointer.pendingCount).toBe(0)
+      })
+
+      it('should queue all points when batching enabled', () => {
+        pointer.enableBatching()
+        const points = [createPoint(10, 20), createPoint(30, 40)]
+        pointer.queueAll(points)
+
+        expect(pointer.pendingCount).toBe(2)
+        expect(pointer.getBuffer().length).toBe(0)
+      })
+
+      it('should support method chaining', () => {
+        pointer.enableBatching()
+        const result = pointer.queueAll([createPoint(10, 20)])
+
+        expect(result).toBe(pointer)
+      })
+    })
+
+    describe('flushBatch', () => {
+      it('should force process pending points', () => {
+        pointer.enableBatching()
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+
+        const results = pointer.flushBatch()
+
+        expect(results.length).toBe(2)
+        expect(pointer.pendingCount).toBe(0)
+        expect(pointer.getBuffer().length).toBe(2)
+      })
+
+      it('should return empty array when no pending points', () => {
+        pointer.enableBatching()
+        const results = pointer.flushBatch()
+
+        expect(results).toEqual([])
+      })
+
+      it('should cancel scheduled flush', () => {
+        const onBatch = vi.fn()
+        pointer.enableBatching({ onBatch })
+        pointer.queue(createPoint(10, 20))
+
+        pointer.flushBatch()
+        vi.runAllTimers()
+
+        // onBatch should be called only once (from flushBatch, not from rAF)
+        expect(onBatch).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('callbacks', () => {
+      it('should call onPoint for each processed point', () => {
+        const onPoint = vi.fn()
+        pointer.enableBatching({ onPoint })
+
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+        vi.runAllTimers()
+
+        expect(onPoint).toHaveBeenCalledTimes(2)
+        expect(onPoint).toHaveBeenNthCalledWith(1, expect.objectContaining({ x: 10, y: 20 }))
+        expect(onPoint).toHaveBeenNthCalledWith(2, expect.objectContaining({ x: 30, y: 40 }))
+      })
+
+      it('should call onBatch with all processed points', () => {
+        const onBatch = vi.fn()
+        pointer.enableBatching({ onBatch })
+
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+        vi.runAllTimers()
+
+        expect(onBatch).toHaveBeenCalledTimes(1)
+        expect(onBatch).toHaveBeenCalledWith([
+          expect.objectContaining({ x: 10, y: 20 }),
+          expect.objectContaining({ x: 30, y: 40 }),
+        ])
+      })
+
+      it('should not call callbacks for rejected points', () => {
+        const onPoint = vi.fn()
+        const onBatch = vi.fn()
+        pointer
+          .addFilter(noiseFilter({ minDistance: 100 }))
+          .enableBatching({ onPoint, onBatch })
+
+        pointer.queue(createPoint(0, 0))
+        pointer.queue(createPoint(1, 1)) // Rejected
+        vi.runAllTimers()
+
+        expect(onPoint).toHaveBeenCalledTimes(1)
+        expect(onBatch).toHaveBeenCalledWith([expect.objectContaining({ x: 0, y: 0 })])
+      })
+
+      it('should not call onBatch when all points are rejected', () => {
+        const onBatch = vi.fn()
+        pointer
+          .addFilter(noiseFilter({ minDistance: 100 }))
+          .enableBatching({ onBatch })
+
+        pointer.queue(createPoint(0, 0))
+        vi.runAllTimers()
+        onBatch.mockClear()
+
+        pointer.queue(createPoint(1, 1)) // Rejected
+        vi.runAllTimers()
+
+        expect(onBatch).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('disableBatching behavior', () => {
+      it('should flush pending points when disabling', () => {
+        const onBatch = vi.fn()
+        pointer.enableBatching({ onBatch })
+
+        pointer.queue(createPoint(10, 20))
+        pointer.disableBatching()
+
+        expect(pointer.getBuffer().length).toBe(1)
+        expect(pointer.pendingCount).toBe(0)
+      })
+    })
+
+    describe('finish with batching', () => {
+      it('should flush pending points before finishing', () => {
+        pointer.enableBatching()
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+
+        const result = pointer.finish()
+
+        expect(result.length).toBe(2)
+      })
+
+      it('should apply post processors after flushing batch', () => {
+        pointer
+          .addPostProcess(boxKernel({ size: 3 }))
+          .enableBatching()
+
+        pointer.queue(createPoint(0, 0, 0))
+        pointer.queue(createPoint(10, 100, 100)) // Spike
+        pointer.queue(createPoint(20, 0, 200))
+
+        const result = pointer.finish()
+
+        expect(result.length).toBe(3)
+        // Smoothed
+        expect(result[1].y).toBeLessThan(100)
+      })
+    })
+
+    describe('batch coalescing', () => {
+      it('should coalesce multiple queues into single batch', () => {
+        const onBatch = vi.fn()
+        pointer.enableBatching({ onBatch })
+
+        // Queue multiple times before frame
+        pointer.queue(createPoint(10, 20))
+        pointer.queue(createPoint(30, 40))
+        pointer.queue(createPoint(50, 60))
+
+        vi.runAllTimers()
+
+        // Should be called once with all points
+        expect(onBatch).toHaveBeenCalledTimes(1)
+        expect(onBatch).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ x: 10 }),
+            expect.objectContaining({ x: 30 }),
+            expect.objectContaining({ x: 50 }),
+          ])
+        )
+      })
+
+      it('should process in separate batches across frames', () => {
+        const onBatch = vi.fn()
+        pointer.enableBatching({ onBatch })
+
+        pointer.queue(createPoint(10, 20))
+        vi.runAllTimers()
+
+        pointer.queue(createPoint(30, 40))
+        vi.runAllTimers()
+
+        expect(onBatch).toHaveBeenCalledTimes(2)
+      })
     })
   })
 })

@@ -18,10 +18,9 @@ npm install @stroke-stabilizer/vue @stroke-stabilizer/core
 ```vue
 <script setup lang="ts">
 import { useStabilizedPointer } from '@stroke-stabilizer/vue'
-import { oneEuroFilter } from '@stroke-stabilizer/core'
 
-const { process, reset, finish } = useStabilizedPointer({
-  filters: [oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })],
+const { process, reset, pointer } = useStabilizedPointer({
+  level: 50,
   onPoint: (point) => {
     draw(point.x, point.y)
   },
@@ -37,14 +36,48 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function handlePointerUp() {
-  const finalPoints = finish()
-  // Use finalPoints for final stroke
   reset()
 }
 </script>
 
 <template>
   <canvas @pointermove="handlePointerMove" @pointerup="handlePointerUp" />
+</template>
+```
+
+### With rAF Batch Processing
+
+For high-frequency input devices, use the underlying `StabilizedPointer`'s batch processing:
+
+```vue
+<script setup lang="ts">
+import { useStabilizedPointer } from '@stroke-stabilizer/vue'
+import { onMounted, onUnmounted } from 'vue'
+
+const { pointer } = useStabilizedPointer({ level: 50 })
+
+onMounted(() => {
+  pointer.value.enableBatching({
+    onBatch: (points) => drawPoints(points),
+  })
+})
+
+onUnmounted(() => {
+  pointer.value.disableBatching()
+})
+
+function handlePointerMove(e: PointerEvent) {
+  pointer.value.queue({
+    x: e.clientX,
+    y: e.clientY,
+    pressure: e.pressure,
+    timestamp: e.timeStamp,
+  })
+}
+</script>
+
+<template>
+  <canvas @pointermove="handlePointerMove" />
 </template>
 ```
 
@@ -125,7 +158,7 @@ Manages stabilization level state.
 - `setLevel(value)` - Set the level
 - `increase(amount?)` - Increase level by amount (default: 10)
 - `decrease(amount?)` - Decrease level by amount (default: 10)
-- `isEnabled` - Computed ref indicating if stabilization is active
+- `isEnabled` - Computed ref indicating if stabilization is active (level > 0)
 
 ## License
 

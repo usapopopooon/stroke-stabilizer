@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-15
+
+### Added
+
+#### @stroke-stabilizer/core
+- **rAF Batch Processing** - requestAnimationFrame-based batching for high-frequency pointer events
+  - `enableBatching(config)` - Enable batch processing with optional callbacks
+  - `disableBatching()` - Disable batch processing (flushes pending points)
+  - `queue(point)` - Queue a point for batch processing
+  - `queueAll(points)` - Queue multiple points
+  - `flushBatch()` - Force process pending points immediately
+  - `isBatchingEnabled` - Check if batching is enabled
+  - `pendingCount` - Get number of pending points
+- `BatchConfig` type export for TypeScript users
+
+### Changed
+
+- All method chaining APIs now support batching methods seamlessly
+- `finish()` now automatically flushes pending batched points before post-processing
+
+### Infrastructure
+
+- Added `.claude/` to .gitignore
+- Volta pin for Node.js LTS
+- Test count increased to 128 (added 23 batch processing tests)
+
 ## [0.1.2] - 2026-01-15
 
 ### Added
@@ -50,5 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint + Prettier configuration
 - TypeScript strict mode
 
+[0.2.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.0
 [0.1.2]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.2
 [0.1.1]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.1
