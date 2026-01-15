@@ -1,0 +1,45 @@
+{
+  "name": "@stroke-stabilizer/core",
+  "version": "0.0.1",
+  "description": "Dynamic Pipeline Pattern for real-time stroke stabilization",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "vite-plugin-dts": "^4.0.0"
+  },
+  "keywords": [
+    "stroke",
+    "stabilization",
+    "smoothing",
+    "drawing",
+    "canvas",
+    "pointer",
+    "kalman-filter",
+    "gaussian"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usapo/stroke-stabilizer"
+  },
+  "sideEffects": false
+}
