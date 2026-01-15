@@ -1,17 +1,17 @@
 import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface NoiseFilterParams {
-  /** 最小移動距離（px）。これ未満の移動は棄却 */
+  /** Minimum movement distance (px). Movements smaller than this are rejected */
   minDistance: number
 }
 
 const FILTER_TYPE = 'noise' as const
 
 /**
- * ノイズフィルタ
+ * Noise filter
  *
- * 前回のポイントからの距離が minDistance 未満の場合、
- * そのポイントを棄却してジッターを除去する。
+ * Rejects points to eliminate jitter if the distance from the
+ * previous point is less than minDistance.
  */
 class NoiseFilterImpl implements UpdatableFilter<NoiseFilterParams> {
   readonly type = FILTER_TYPE
@@ -33,7 +33,7 @@ class NoiseFilterImpl implements UpdatableFilter<NoiseFilterParams> {
     const distance = Math.sqrt(dx * dx + dy * dy)
 
     if (distance < this.params.minDistance) {
-      return null // 棄却
+      return null // Reject
     }
 
     this.lastPoint = point
@@ -50,7 +50,7 @@ class NoiseFilterImpl implements UpdatableFilter<NoiseFilterParams> {
 }
 
 /**
- * ノイズフィルタを作成
+ * Create a noise filter
  *
  * @example
  * ```ts

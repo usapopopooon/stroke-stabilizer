@@ -89,8 +89,8 @@ describe('StabilizedPointer', () => {
 
     it('should apply filters in order', () => {
       pointer
-        .addFilter(noiseFilter({ minDistance: 0 })) // パススルー
-        .addFilter(movingAverageFilter({ windowSize: 1 })) // パススルー
+        .addFilter(noiseFilter({ minDistance: 0 })) // Pass through
+        .addFilter(movingAverageFilter({ windowSize: 1 })) // Pass through
 
       const point = createPoint(10, 20)
       const result = pointer.process(point)
@@ -104,7 +104,7 @@ describe('StabilizedPointer', () => {
       pointer.addFilter(noiseFilter({ minDistance: 100 }))
 
       const point1 = createPoint(0, 0)
-      const point2 = createPoint(1, 1) // 距離が100未満なので棄却
+      const point2 = createPoint(1, 1) // Rejected (distance < 100)
 
       expect(pointer.process(point1)).not.toBeNull()
       expect(pointer.process(point2)).toBeNull()
@@ -123,7 +123,7 @@ describe('StabilizedPointer', () => {
       pointer.addFilter(noiseFilter({ minDistance: 100 }))
 
       pointer.process(createPoint(0, 0))
-      pointer.process(createPoint(1, 1)) // 棄却される
+      pointer.process(createPoint(1, 1)) // Rejected
 
       expect(pointer.getBuffer().length).toBe(1)
     })
@@ -147,8 +147,8 @@ describe('StabilizedPointer', () => {
 
       const points = [
         createPoint(0, 0, 0),
-        createPoint(5, 5, 100), // 棄却（距離 ~7）
-        createPoint(20, 20, 200), // 通過（距離 ~28）
+        createPoint(5, 5, 100), // Rejected (distance ~7)
+        createPoint(20, 20, 200), // Passed (distance ~28)
       ]
 
       const results = pointer.processAll(points)
@@ -176,7 +176,7 @@ describe('StabilizedPointer', () => {
       pointer.reset()
 
       expect(pointer.getBuffer().length).toBe(0)
-      // フィルタはまだ存在
+      // Filters still exist
       expect(pointer.length).toBe(1)
     })
 
@@ -206,25 +206,24 @@ describe('StabilizedPointer', () => {
 
       const results = pointer.processAll(points)
 
-      // カルマンフィルタで平滑化されるので、
-      // 完全に直線にはならないが近い値になる
+      // Smoothed by Kalman filter, not perfectly straight but close
       expect(results.length).toBeGreaterThan(0)
     })
 
     it('should work with string filter for lazy brush effect', () => {
       pointer.addFilter(stringFilter({ stringLength: 10 }))
 
-      // 最初のポイント
+      // First point
       const p1 = pointer.process(createPoint(0, 0, 0))
       expect(p1?.x).toBe(0)
       expect(p1?.y).toBe(0)
 
-      // 紐の長さ以内の移動 → アンカーは動かない
+      // Movement within string length -> anchor doesn't move
       const p2 = pointer.process(createPoint(5, 5, 100))
       expect(p2?.x).toBe(0)
       expect(p2?.y).toBe(0)
 
-      // 紐の長さを超える移動 → 引っ張られる
+      // Movement exceeding string length -> pulled
       const p3 = pointer.process(createPoint(20, 20, 200))
       expect(p3?.x).toBeGreaterThan(0)
       expect(p3?.y).toBeGreaterThan(0)
@@ -232,7 +231,7 @@ describe('StabilizedPointer', () => {
   })
 
   // ========================================
-  // Post Process（事後処理）
+  // Post Process
   // ========================================
 
   describe('post process', () => {
@@ -248,8 +247,8 @@ describe('StabilizedPointer', () => {
         .addPostProcess(boxKernel({ size: 3 }))
 
       expect(result).toBe(pointer)
-      expect(pointer.length).toBe(1) // フィルタ数
-      expect(pointer.postProcessLength).toBe(2) // 事後処理数
+      expect(pointer.length).toBe(1) // Filter count
+      expect(pointer.postProcessLength).toBe(2) // Post process count
       expect(pointer.getPostProcessTypes()).toEqual(['gaussian', 'box'])
     })
 
@@ -306,7 +305,7 @@ describe('StabilizedPointer', () => {
     it('should apply post processors on finish', () => {
       pointer.addPostProcess(boxKernel({ size: 3 }))
 
-      // ジグザグパターン
+      // Zigzag pattern
       pointer.process(createPoint(0, 0, 0))
       pointer.process(createPoint(10, 20, 100))
       pointer.process(createPoint(20, 0, 200))
@@ -316,7 +315,7 @@ describe('StabilizedPointer', () => {
       const result = pointer.finish()
 
       expect(result.length).toBe(5)
-      // 平滑化されているはず
+      // Should be smoothed
       expect(result[2].y).toBeGreaterThan(0)
       expect(result[2].y).toBeLessThan(20)
     })
@@ -327,13 +326,13 @@ describe('StabilizedPointer', () => {
         .addPostProcess(gaussianKernel({ size: 3 }))
 
       pointer.process(createPoint(0, 0, 0))
-      pointer.process(createPoint(10, 100, 100)) // スパイク
+      pointer.process(createPoint(10, 100, 100)) // Spike
       pointer.process(createPoint(20, 0, 200))
 
       const result = pointer.finish()
 
       expect(result.length).toBe(3)
-      // 2回平滑化されているのでかなり平らになる
+      // Smoothed twice, should be quite flat
       expect(result[1].y).toBeLessThan(100)
     })
 
@@ -350,7 +349,7 @@ describe('StabilizedPointer', () => {
       pointer.process(createPoint(100, 100, 100))
       pointer.finish()
 
-      // フィルタがリセットされているので、最初のポイントは通過する
+      // Filter is reset, so first point should pass
       const result = pointer.process(createPoint(1, 1, 200))
       expect(result).not.toBeNull()
     })
@@ -375,7 +374,7 @@ describe('StabilizedPointer', () => {
 
       const result = pointer.finish()
 
-      // リアルタイムフィルタ + 事後処理が両方適用される
+      // Both realtime filters and post processing applied
       expect(result.length).toBeGreaterThan(0)
     })
   })

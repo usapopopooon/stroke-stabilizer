@@ -2,9 +2,9 @@ import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface EmaFilterParams {
   /**
-   * 平滑化係数（0-1）
-   * - 小さい値: より強い平滑化（過去を重視）
-   * - 大きい値: より敏感（新しい値を重視）
+   * Smoothing coefficient (0-1)
+   * - Lower value: stronger smoothing (emphasizes past values)
+   * - Higher value: more responsive (emphasizes new values)
    */
   alpha: number
 }
@@ -12,12 +12,12 @@ export interface EmaFilterParams {
 const FILTER_TYPE = 'ema' as const
 
 /**
- * 指数移動平均（EMA）フィルタ
+ * Exponential Moving Average (EMA) filter
  *
- * IIRフィルタ。新しい値ほど重要視し、古い値は指数関数的に減衰。
- * 計算コストが最も低く、遅延も少ない。
+ * IIR filter. Weights newer values more heavily, older values decay exponentially.
+ * Lowest computational cost and minimal latency.
  *
- * 数式: y[n] = α * x[n] + (1 - α) * y[n-1]
+ * Formula: y[n] = α * x[n] + (1 - α) * y[n-1]
  */
 class EmaFilterImpl implements UpdatableFilter<EmaFilterParams> {
   readonly type = FILTER_TYPE
@@ -40,7 +40,7 @@ class EmaFilterImpl implements UpdatableFilter<EmaFilterParams> {
     const newX = alpha * point.x + (1 - alpha) * this.lastPoint.x
     const newY = alpha * point.y + (1 - alpha) * this.lastPoint.y
 
-    // pressure も EMA 適用（存在する場合）
+    // Apply EMA to pressure if present
     let newPressure: number | undefined
     if (point.pressure !== undefined && this.lastPoint.pressure !== undefined) {
       newPressure =
@@ -69,15 +69,15 @@ class EmaFilterImpl implements UpdatableFilter<EmaFilterParams> {
 }
 
 /**
- * 指数移動平均（EMA）フィルタを作成
+ * Create an Exponential Moving Average (EMA) filter
  *
  * @example
  * ```ts
- * // 強い平滑化
+ * // Strong smoothing
  * const pointer = new StabilizedPointer()
  *   .addFilter(emaFilter({ alpha: 0.2 }))
  *
- * // 軽い平滑化
+ * // Light smoothing
  * const pointer = new StabilizedPointer()
  *   .addFilter(emaFilter({ alpha: 0.7 }))
  * ```

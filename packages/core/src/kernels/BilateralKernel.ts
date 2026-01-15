@@ -2,21 +2,21 @@ import type { Point } from '../types'
 
 export interface BilateralKernelParams {
   /**
-   * カーネルサイズ（奇数）
-   * 推奨: 5-11
+   * Kernel size (odd number)
+   * Recommended: 5-11
    */
   size: number
   /**
-   * 空間方向の標準偏差
-   * インデックス距離による重み減衰
-   * 推奨: size / 3
+   * Spatial standard deviation
+   * Weight decay based on index distance
+   * Recommended: size / 3
    */
   sigmaSpace?: number
   /**
-   * 値方向の標準偏差
-   * 座標値の差による重み減衰（エッジ保存）
-   * 小さいほどエッジを強く保存
-   * 推奨: 5-30
+   * Value standard deviation
+   * Weight decay based on coordinate value difference (edge preservation)
+   * Lower = stronger edge preservation
+   * Recommended: 5-30
    */
   sigmaValue: number
 }
@@ -27,16 +27,17 @@ export interface BilateralKernel {
   readonly sigmaSpace: number
   readonly sigmaValue: number
   /**
-   * 各ポイントに対する重みを動的に計算
+   * Dynamically compute weights for each point
    */
   computeWeights(center: Point, neighbors: Point[]): number[]
 }
 
 /**
- * バイラテラルカーネルを生成
+ * Generate a bilateral kernel
  *
- * 通常の畳み込みと異なり、座標値の類似度も考慮して重みを決定する。
- * これにより、エッジ（急な方向転換など）を保存しながら平滑化できる。
+ * Unlike standard convolution, weights are determined considering
+ * coordinate value similarity. This enables smoothing while preserving
+ * edges (sharp direction changes, etc.).
  *
  * @example
  * ```ts
@@ -55,7 +56,7 @@ export function bilateralKernel(
 
   const halfSize = Math.floor(actualSize / 2)
 
-  // 空間方向の重みを事前計算
+  // Pre-compute spatial weights
   const spatialWeights: number[] = []
   for (let i = 0; i < actualSize; i++) {
     const d = i - halfSize
@@ -73,21 +74,21 @@ export function bilateralKernel(
       let sum = 0
 
       for (let i = 0; i < neighbors.length; i++) {
-        // 座標値の差を計算
+        // Calculate coordinate value difference
         const dx = neighbors[i].x - center.x
         const dy = neighbors[i].y - center.y
         const valueDiff = dx * dx + dy * dy
 
-        // 値方向の重み
+        // Value-based weight
         const valueWeight = Math.exp(-valueDiff / (2 * sigmaValue * sigmaValue))
 
-        // 空間 × 値 の重み
+        // Spatial × value weight
         const weight = spatialWeights[i] * valueWeight
         weights.push(weight)
         sum += weight
       }
 
-      // 正規化
+      // Normalize
       if (sum > 0) {
         for (let i = 0; i < weights.length; i++) {
           weights[i] /= sum

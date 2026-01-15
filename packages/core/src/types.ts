@@ -1,5 +1,5 @@
 /**
- * 2D座標点
+ * 2D coordinate point
  */
 export interface Point {
   x: number
@@ -7,7 +7,7 @@ export interface Point {
 }
 
 /**
- * タイムスタンプ付きポインター入力点
+ * Pointer input point with timestamp
  */
 export interface PointerPoint extends Point {
   pressure?: number
@@ -15,7 +15,7 @@ export interface PointerPoint extends Point {
 }
 
 /**
- * フィルタの基本インターフェース
+ * Base interface for filters
  */
 export interface Filter {
   readonly type: string
@@ -24,13 +24,13 @@ export interface Filter {
 }
 
 /**
- * フィルタのパラメータ更新インターフェース
+ * Interface for filters with updatable parameters
  */
 export interface UpdatableFilter<TParams = unknown> extends Filter {
   updateParams(params: Partial<TParams>): void
 }
 
 /**
- * フィルタファクトリ関数の型
+ * Type for filter factory functions
  */
 export type FilterFactory<TParams = unknown> = (params: TParams) => Filter

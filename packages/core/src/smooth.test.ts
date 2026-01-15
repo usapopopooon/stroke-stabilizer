@@ -36,7 +36,7 @@ describe('smooth', () => {
 
     const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
 
-    // 中央点は平滑化されるはず
+    // Center point should be smoothed
     expect(result[2].y).toBeGreaterThan(0)
     expect(result[2].y).toBeLessThan(20)
   })
@@ -52,7 +52,7 @@ describe('smooth', () => {
 
     const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
 
-    // 直線上のポイントはほぼ直線のまま
+    // Points on a line should remain mostly linear
     for (let i = 0; i < result.length; i++) {
       expect(result[i].x).toBeCloseTo(result[i].y, 0)
     }
@@ -102,7 +102,7 @@ describe('smooth', () => {
       })
 
       expect(result.length).toBe(3)
-      // ゼロパディングなので端は 0 に引っ張られる
+      // With zero padding, edges are pulled toward 0
       expect(result[0].x).toBeLessThan(points[0].x + 5)
     })
   })
@@ -110,13 +110,13 @@ describe('smooth', () => {
   it('should apply gaussian smoothing', () => {
     const points: Point[] = [
       { x: 0, y: 0 },
-      { x: 10, y: 100 }, // スパイク
+      { x: 10, y: 100 }, // Spike
       { x: 20, y: 0 },
     ]
 
     const result = smooth(points, { kernel: gaussianKernel({ size: 3 }) })
 
-    // スパイクが平滑化される
+    // Spike is smoothed
     expect(result[1].y).toBeLessThan(100)
     expect(result[1].y).toBeGreaterThan(0)
   })
@@ -136,19 +136,19 @@ describe('smooth', () => {
       })
 
       expect(result.length).toBe(5)
-      // 直線上のポイントはほぼ直線のまま
+      // Points on a line should remain mostly linear
       for (let i = 0; i < result.length; i++) {
         expect(result[i].x).toBeCloseTo(result[i].y, 0)
       }
     })
 
     it('should give lower weight to distant values', () => {
-      // バイラテラルフィルタは値が遠い点の重みを下げる
-      // スパイク（外れ値）に対する耐性をテスト
+      // Bilateral filter reduces weight for distant points
+      // Test resistance to spikes (outliers)
       const pointsWithSpike: Point[] = [
         { x: 0, y: 0 },
         { x: 10, y: 10 },
-        { x: 20, y: 100 }, // スパイク（外れ値）
+        { x: 20, y: 100 }, // Spike (outlier)
         { x: 30, y: 30 },
         { x: 40, y: 40 },
       ]
@@ -161,23 +161,23 @@ describe('smooth', () => {
         kernel: bilateralKernel({ size: 5, sigmaValue: 10 }),
       })
 
-      // バイラテラルの方がスパイクの影響を受けにくい
-      // 隣接点（index 1, 3）でバイラテラルの方が元の値に近い
+      // Bilateral is less affected by spikes
+      // Adjacent points (index 1, 3) should be closer to original with bilateral
       expect(Math.abs(bilateralResult[1].y - 10)).toBeLessThanOrEqual(
         Math.abs(gaussianResult[1].y - 10) + 5
       )
     })
 
     it('should smooth noise while preserving structure', () => {
-      // ノイズのあるL字データ
+      // L-shaped data with noise
       const points: Point[] = [
-        { x: 2, y: -1 }, // ノイズ (0, 0)
-        { x: 9, y: 2 }, // ノイズ (10, 0)
-        { x: 21, y: -2 }, // ノイズ (20, 0)
-        { x: 29, y: 1 }, // ノイズ (30, 0) - エッジ
-        { x: 31, y: 9 }, // ノイズ (30, 10)
-        { x: 28, y: 21 }, // ノイズ (30, 20)
-        { x: 32, y: 29 }, // ノイズ (30, 30)
+        { x: 2, y: -1 }, // Noise (0, 0)
+        { x: 9, y: 2 }, // Noise (10, 0)
+        { x: 21, y: -2 }, // Noise (20, 0)
+        { x: 29, y: 1 }, // Noise (30, 0) - Edge
+        { x: 31, y: 9 }, // Noise (30, 10)
+        { x: 28, y: 21 }, // Noise (30, 20)
+        { x: 32, y: 29 }, // Noise (30, 30)
       ]
 
       const result = smooth(points, {
@@ -185,8 +185,8 @@ describe('smooth', () => {
       })
 
       expect(result.length).toBe(7)
-      // ノイズが軽減されているはず
-      // 完璧な復元は期待しないが、構造は保たれる
+      // Noise should be reduced
+      // Don't expect perfect restoration, but structure is preserved
     })
 
     it('should work with all padding modes', () => {

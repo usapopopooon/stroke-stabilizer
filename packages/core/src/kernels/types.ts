@@ -1,7 +1,7 @@
 import type { Point } from '../types'
 
 /**
- * 畳み込みカーネル（固定重み）
+ * Convolution kernel (fixed weights)
  */
 export interface Kernel {
   readonly type: string
@@ -9,7 +9,7 @@ export interface Kernel {
 }
 
 /**
- * 適応型カーネル（動的重み計算）
+ * Adaptive kernel (dynamic weight computation)
  */
 export interface AdaptiveKernel {
   readonly type: string
@@ -18,12 +18,12 @@ export interface AdaptiveKernel {
 }
 
 /**
- * 全てのカーネル型
+ * All kernel types
  */
 export type AnyKernel = Kernel | AdaptiveKernel
 
 /**
- * カーネルが適応型かどうかを判定
+ * Check if kernel is adaptive
  */
 export function isAdaptiveKernel(kernel: AnyKernel): kernel is AdaptiveKernel {
   return (
@@ -32,10 +32,10 @@ export function isAdaptiveKernel(kernel: AnyKernel): kernel is AdaptiveKernel {
 }
 
 /**
- * パディング方式
- * - 'reflect': 端を反射 [3,2,1] | [1,2,3,4,5] | [5,4,3]
- * - 'edge': 端の値を繰り返す [1,1,1] | [1,2,3,4,5] | [5,5,5]
- * - 'zero': ゼロ埋め [0,0,0] | [1,2,3,4,5] | [0,0,0]
+ * Padding mode
+ * - 'reflect': Reflect at edges [3,2,1] | [1,2,3,4,5] | [5,4,3]
+ * - 'edge': Repeat edge values [1,1,1] | [1,2,3,4,5] | [5,5,5]
+ * - 'zero': Zero padding [0,0,0] | [1,2,3,4,5] | [0,0,0]
  */
 export type PaddingMode = 'reflect' | 'edge' | 'zero'
 

@@ -1,12 +1,12 @@
 import type { Kernel } from './types'
 
 export interface BoxKernelParams {
-  /** カーネルサイズ（奇数） */
+  /** Kernel size (odd number) */
   size: number
 }
 
 /**
- * ボックスカーネル（単純平均）を生成
+ * Generate a box kernel (simple average)
  *
  * @example
  * ```ts
@@ -17,7 +17,7 @@ export interface BoxKernelParams {
 export function boxKernel(params: BoxKernelParams): Kernel {
   const { size } = params
 
-  // サイズを奇数に強制
+  // Force odd size
   const actualSize = size % 2 === 0 ? size + 1 : size
   const weight = 1 / actualSize
 

@@ -7,35 +7,35 @@ import {
 } from '@stroke-stabilizer/core'
 
 export interface UseStabilizedPointerOptions {
-  /** 補正レベル（0-100）。指定時はプリセットが適用される */
+  /** Stabilization level (0-100). Uses preset when specified */
   level?: number
-  /** カスタムフィルタ。level が指定されていない場合に使用 */
+  /** Custom filters. Used when level is not specified */
   filters?: Filter[]
-  /** ポイント処理時のコールバック */
+  /** Callback when a point is processed */
   onPoint?: (point: PointerPoint) => void
 }
 
 export interface UseStabilizedPointerReturn {
-  /** ポイントを処理 */
+  /** Process a point */
   process: (point: PointerPoint) => PointerPoint | null
-  /** 複数ポイントを一括処理 */
+  /** Process multiple points at once */
   processAll: (points: PointerPoint[]) => PointerPoint[]
-  /** バッファをフラッシュ */
+  /** Flush buffer */
   flushBuffer: () => PointerPoint[]
-  /** リセット */
+  /** Reset */
   reset: () => void
-  /** フィルタを追加 */
+  /** Add a filter */
   addFilter: (filter: Filter) => void
-  /** フィルタを削除 */
+  /** Remove a filter */
   removeFilter: (type: string) => boolean
-  /** フィルタのパラメータを更新 */
+  /** Update filter parameters */
   updateFilter: <T>(type: string, params: Partial<T>) => boolean
-  /** StabilizedPointer インスタンスへの参照 */
+  /** Reference to StabilizedPointer instance */
   pointer: StabilizedPointer
 }
 
 /**
- * 手ぶれ補正のための React Hook
+ * React Hook for stroke stabilization
  *
  * @example
  * ```tsx
@@ -43,7 +43,7 @@ export interface UseStabilizedPointerReturn {
  *   const { process, reset } = useStabilizedPointer({
  *     level: 50,
  *     onPoint: (point) => {
- *       // 補正済みポイントで描画
+ *       // Draw with stabilized point
  *       drawPoint(point)
  *     }
  *   })
@@ -72,7 +72,7 @@ export function useStabilizedPointer(
 
   const pointerRef = useRef<StabilizedPointer | null>(null)
 
-  // 初期化（lazy initialization）
+  // Lazy initialization
   const getPointer = useCallback(() => {
     if (!pointerRef.current) {
       if (level !== undefined) {

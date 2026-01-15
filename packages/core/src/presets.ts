@@ -5,22 +5,22 @@ import { movingAverageFilter } from './filters/MovingAverageFilter'
 import { stringFilter } from './filters/StringFilter'
 
 /**
- * レベル（0-100）に応じた StabilizedPointer を作成
+ * Create a StabilizedPointer based on level (0-100)
  *
- * レベル別のフィルタ構成:
- * - 0%: 補正なし
- * - 1-20%: ノイズフィルタのみ
- * - 21-40%: ノイズ + カルマン
- * - 41-60%: ノイズ + カルマン + 移動平均
- * - 61-80%: 上記 + 紐補正（軽）
- * - 81-100%: 上記 + 紐補正（強）
+ * Filter configuration by level:
+ * - 0%: No stabilization
+ * - 1-20%: Noise filter only
+ * - 21-40%: Noise + Kalman
+ * - 41-60%: Noise + Kalman + Moving average
+ * - 61-80%: Above + String (light)
+ * - 81-100%: Above + String (strong)
  *
  * @example
  * ```ts
- * // 中程度の補正
+ * // Medium stabilization
  * const pointer = createStabilizedPointer(50)
  *
- * // 補正なし
+ * // No stabilization
  * const raw = createStabilizedPointer(0)
  * ```
  */
@@ -32,25 +32,25 @@ export function createStabilizedPointer(level: number): StabilizedPointer {
     return pointer
   }
 
-  // レベル 1-100: ノイズフィルタ
+  // Level 1-100: Noise filter
   const minDistance = 1.0 + (clampedLevel / 100) * 2.0 // 1.0-3.0
   pointer.addFilter(noiseFilter({ minDistance }))
 
   if (clampedLevel >= 21) {
-    // レベル 21-100: カルマンフィルタ
+    // Level 21-100: Kalman filter
     const processNoise = 0.12 - (clampedLevel / 100) * 0.08 // 0.12-0.04
     const measurementNoise = 0.4 + (clampedLevel / 100) * 0.6 // 0.4-1.0
     pointer.addFilter(kalmanFilter({ processNoise, measurementNoise }))
   }
 
   if (clampedLevel >= 41) {
-    // レベル 41-100: 移動平均フィルタ
+    // Level 41-100: Moving average filter
     const windowSize = clampedLevel >= 61 ? 7 : 5
     pointer.addFilter(movingAverageFilter({ windowSize }))
   }
 
   if (clampedLevel >= 61) {
-    // レベル 61-100: 紐補正
+    // Level 61-100: String stabilization
     const stringLength = clampedLevel >= 81 ? 15 : 8
     pointer.addFilter(stringFilter({ stringLength }))
   }
@@ -59,7 +59,7 @@ export function createStabilizedPointer(level: number): StabilizedPointer {
 }
 
 /**
- * プリセット名から StabilizedPointer を作成
+ * Create StabilizedPointer from preset name
  */
 export type PresetName = 'none' | 'light' | 'medium' | 'heavy' | 'extreme'
 
@@ -72,7 +72,7 @@ const presetLevels: Record<PresetName, number> = {
 }
 
 /**
- * プリセットから StabilizedPointer を作成
+ * Create StabilizedPointer from preset
  *
  * @example
  * ```ts

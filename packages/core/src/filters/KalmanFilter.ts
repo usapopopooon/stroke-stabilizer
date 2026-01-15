@@ -1,9 +1,9 @@
 import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface KalmanFilterParams {
-  /** プロセスノイズ（Q）: 小さいほど予測を信頼 */
+  /** Process noise (Q): Lower values trust prediction more */
   processNoise: number
-  /** 観測ノイズ（R）: 大きいほど平滑化が強い */
+  /** Measurement noise (R): Higher values result in stronger smoothing */
   measurementNoise: number
 }
 
@@ -12,17 +12,17 @@ interface KalmanState {
   y: number
   vx: number
   vy: number
-  p: number // 共分散
+  p: number // covariance
   lastTimestamp: number
 }
 
 const FILTER_TYPE = 'kalman' as const
 
 /**
- * カルマンフィルタ
+ * Kalman filter
  *
- * 速度ベースの予測と観測を組み合わせて滑らかな曲線を生成。
- * 状態: [x, y, vx, vy]（位置と速度）
+ * Combines velocity-based prediction with observation to generate smooth curves.
+ * State: [x, y, vx, vy] (position and velocity)
  */
 class KalmanFilterImpl implements UpdatableFilter<KalmanFilterParams> {
   readonly type = FILTER_TYPE
@@ -52,19 +52,19 @@ class KalmanFilterImpl implements UpdatableFilter<KalmanFilterParams> {
     )
     const { processNoise: Q, measurementNoise: R } = this.params
 
-    // 予測ステップ
+    // Prediction step
     const predictedX = this.state.x + this.state.vx * dt
     const predictedY = this.state.y + this.state.vy * dt
     const predictedP = this.state.p + Q
 
-    // 更新ステップ（カルマンゲイン計算）
+    // Update step (calculate Kalman gain)
     const K = predictedP / (predictedP + R)
 
-    // 観測値との差分
+    // Innovation (difference from observation)
     const innovationX = point.x - predictedX
     const innovationY = point.y - predictedY
 
-    // 状態更新
+    // State update
     const newX = predictedX + K * innovationX
     const newY = predictedY + K * innovationY
     const newVx = this.state.vx + (K * innovationX) / dt
@@ -98,7 +98,7 @@ class KalmanFilterImpl implements UpdatableFilter<KalmanFilterParams> {
 }
 
 /**
- * カルマンフィルタを作成
+ * Create a Kalman filter
  *
  * @example
  * ```ts

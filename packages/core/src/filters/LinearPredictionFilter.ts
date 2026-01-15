@@ -2,22 +2,22 @@ import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface LinearPredictionFilterParams {
   /**
-   * 予測に使用するポイント数
-   * 多いほど安定するが、計算コストが増加
-   * 推奨: 3-5
+   * Number of points used for prediction
+   * More points = more stable but higher computation cost
+   * Recommended: 3-5
    */
   historySize: number
   /**
-   * 予測の強さ（0-1）
-   * - 0: 予測なし（現在位置をそのまま返す）
-   * - 1: 完全な予測（速度・加速度を最大限考慮）
-   * 推奨: 0.3-0.7
+   * Prediction strength (0-1)
+   * - 0: No prediction (returns current position as-is)
+   * - 1: Full prediction (maximally considers velocity/acceleration)
+   * Recommended: 0.3-0.7
    */
   predictionFactor: number
   /**
-   * 平滑化係数（0-1）
-   * 予測結果に適用するEMAの係数
-   * 推奨: 0.5-0.8
+   * Smoothing coefficient (0-1)
+   * EMA coefficient applied to prediction output
+   * Recommended: 0.5-0.8
    */
   smoothing?: number
 }
@@ -25,15 +25,15 @@ export interface LinearPredictionFilterParams {
 const FILTER_TYPE = 'linearPrediction' as const
 
 /**
- * 線形予測フィルタ
+ * Linear prediction filter
  *
- * 過去の位置から速度・加速度を計算し、次の位置を予測することで
- * フィルタリングによる遅延を補償する。
+ * Compensates for filter-induced latency by calculating velocity and
+ * acceleration from past positions to predict the next position.
  *
- * 手法:
- * 1. 過去N点から最小二乗法で速度と加速度を推定
- * 2. 予測位置 = 現在位置 + 速度 * Δt + 0.5 * 加速度 * Δt²
- * 3. 予測係数で現在位置と予測位置をブレンド
+ * Method:
+ * 1. Estimate velocity and acceleration from past N points using least squares
+ * 2. Predicted position = current position + velocity * Δt + 0.5 * acceleration * Δt²
+ * 3. Blend current position and predicted position using prediction factor
  */
 class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilterParams> {
   readonly type = FILTER_TYPE
@@ -51,29 +51,29 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
   process(point: PointerPoint): PointerPoint | null {
     this.history.push(point)
 
-    // 履歴がhistorySize+1を超えたら古いものを削除
+    // Remove old entries when history exceeds historySize+1
     while (this.history.length > this.params.historySize + 1) {
       this.history.shift()
     }
 
-    // 最初のポイントはそのまま返す
+    // Return first point as-is
     if (this.history.length === 1) {
       this.lastOutput = point
       return point
     }
 
-    // 速度と加速度を推定
+    // Estimate velocity and acceleration
     const { velocity, acceleration } = this.estimateMotion()
 
-    // 時間差を計算（秒単位）
+    // Calculate time delta (in seconds)
     const dt =
       this.history.length >= 2
         ? (this.history[this.history.length - 1].timestamp -
             this.history[this.history.length - 2].timestamp) /
           1000
-        : 1 / 60 // デフォルト60fps
+        : 1 / 60 // Default 60fps
 
-    // 予測位置を計算
+    // Calculate predicted position
     const { predictionFactor } = this.params
     const predictedX =
       point.x +
@@ -84,7 +84,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       velocity.y * dt * predictionFactor +
       0.5 * acceleration.y * dt * dt * predictionFactor
 
-    // 平滑化を適用
+    // Apply smoothing
     let outputX = predictedX
     let outputY = predictedY
     let outputPressure = point.pressure
@@ -113,7 +113,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
   }
 
   /**
-   * 最小二乗法で速度と加速度を推定
+   * Estimate velocity and acceleration using least squares
    */
   private estimateMotion(): {
     velocity: { x: number; y: number }
@@ -127,14 +127,14 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       }
     }
 
-    // 時刻を正規化（最初のポイントを0とする）
+    // Normalize time (first point = 0)
     const t0 = this.history[0].timestamp
     const times = this.history.map((p) => (p.timestamp - t0) / 1000)
     const xs = this.history.map((p) => p.x)
     const ys = this.history.map((p) => p.y)
 
     if (n === 2) {
-      // 2点の場合は単純な速度計算
+      // Simple velocity calculation for 2 points
       const dt = times[1] - times[0]
       if (dt <= 0) {
         return { velocity: { x: 0, y: 0 }, acceleration: { x: 0, y: 0 } }
@@ -148,7 +148,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       }
     }
 
-    // 3点以上の場合は2次多項式フィッティング
+    // For 3+ points, use quadratic polynomial fitting
     // x(t) = a + b*t + c*t^2
     // velocity = b + 2*c*t
     // acceleration = 2*c
@@ -171,7 +171,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
   }
 
   /**
-   * 2次多項式の最小二乗フィッティング
+   * Quadratic polynomial least squares fitting
    * y = a + b*x + c*x^2
    */
   private polynomialFit(
@@ -180,7 +180,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
   ): { a: number; b: number; c: number } {
     const n = x.length
 
-    // 正規方程式の係数行列を構築
+    // Build normal equation coefficient matrix
     let sumX = 0,
       sumX2 = 0,
       sumX3 = 0,
@@ -202,7 +202,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       sumX2Y += xi2 * yi
     }
 
-    // 連立方程式を解く（クラメルの公式）
+    // Solve system of equations (Cramer's rule)
     // [n,     sumX,   sumX2 ] [a]   [sumY  ]
     // [sumX,  sumX2,  sumX3 ] [b] = [sumXY ]
     // [sumX2, sumX3,  sumX4 ] [c]   [sumX2Y]
@@ -213,7 +213,7 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       sumX2 * (sumX * sumX3 - sumX2 * sumX2)
 
     if (Math.abs(det) < 1e-10) {
-      // 行列が特異な場合は線形フィット
+      // Fall back to linear fit if matrix is singular
       const avgX = sumX / n
       const avgY = sumY / n
       let num = 0,
@@ -259,28 +259,28 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
 }
 
 /**
- * 線形予測フィルタを作成
+ * Create a linear prediction filter
  *
- * 過去の位置から速度・加速度を推定し、次の位置を予測することで
- * フィルタリングによる遅延を補償する。
+ * Compensates for filter-induced latency by estimating velocity and
+ * acceleration from past positions to predict the next position.
  *
  * @example
  * ```ts
- * // 標準的な設定
+ * // Standard settings
  * const pointer = new StabilizedPointer()
  *   .addFilter(linearPredictionFilter({
  *     historySize: 4,
  *     predictionFactor: 0.5
  *   }))
  *
- * // 強い予測（遅延軽減重視）
+ * // Strong prediction (prioritize latency reduction)
  * const responsive = linearPredictionFilter({
  *   historySize: 3,
  *   predictionFactor: 0.8,
  *   smoothing: 0.7
  * })
  *
- * // 安定性重視
+ * // Stability focused
  * const stable = linearPredictionFilter({
  *   historySize: 5,
  *   predictionFactor: 0.3,

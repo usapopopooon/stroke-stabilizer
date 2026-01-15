@@ -7,16 +7,16 @@ import {
 } from '@stroke-stabilizer/core'
 
 export interface UseStabilizedPointerOptions {
-  /** 補正レベル（0-100）。指定時はプリセットが適用される */
+  /** Stabilization level (0-100). Uses preset when specified */
   level?: number
-  /** カスタムフィルタ。level が指定されていない場合に使用 */
+  /** Custom filters. Used when level is not specified */
   filters?: Filter[]
-  /** ポイント処理時のコールバック */
+  /** Callback when a point is processed */
   onPoint?: (point: PointerPoint) => void
 }
 
 /**
- * 手ぶれ補正のための Vue Composable
+ * Vue Composable for stroke stabilization
  *
  * @example
  * ```vue
@@ -26,7 +26,7 @@ export interface UseStabilizedPointerOptions {
  * const { process, reset } = useStabilizedPointer({
  *   level: 50,
  *   onPoint: (point) => {
- *     // 補正済みポイントで描画
+ *     // Draw with stabilized point
  *     drawPoint(point)
  *   }
  * })
@@ -55,7 +55,7 @@ export function useStabilizedPointer(
 ) {
   const { level, filters, onPoint } = options
 
-  // StabilizedPointer インスタンス（リアクティブにしない）
+  // StabilizedPointer instance (non-reactive)
   const pointer = shallowRef<StabilizedPointer>(
     level !== undefined
       ? createStabilizedPointer(level)
@@ -70,7 +70,7 @@ export function useStabilizedPointer(
         })()
   )
 
-  // フィルタ数（リアクティブ）
+  // Filter count (reactive)
   const filterCount = ref(pointer.value.length)
 
   function process(point: PointerPoint): PointerPoint | null {
@@ -114,7 +114,7 @@ export function useStabilizedPointer(
     return pointer.value.updateFilter(type, params)
   }
 
-  // クリーンアップ
+  // Cleanup
   onUnmounted(() => {
     pointer.value.clear()
   })

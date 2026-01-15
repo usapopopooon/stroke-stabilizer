@@ -1,31 +1,31 @@
 import { useState, useCallback } from 'react'
 
 export interface UseStabilizationLevelOptions {
-  /** 初期値（デフォルト: 0） */
+  /** Initial value (default: 0) */
   initialLevel?: number
-  /** 最小値（デフォルト: 0） */
+  /** Minimum value (default: 0) */
   min?: number
-  /** 最大値（デフォルト: 100） */
+  /** Maximum value (default: 100) */
   max?: number
-  /** 変更時のコールバック */
+  /** Callback when level changes */
   onChange?: (level: number) => void
 }
 
 export interface UseStabilizationLevelReturn {
-  /** 現在の補正レベル */
+  /** Current stabilization level */
   level: number
-  /** レベルを設定 */
+  /** Set level */
   setLevel: (level: number) => void
-  /** レベルを増加 */
+  /** Increase level */
   increase: (amount?: number) => void
-  /** レベルを減少 */
+  /** Decrease level */
   decrease: (amount?: number) => void
-  /** 補正が有効かどうか */
+  /** Whether stabilization is enabled */
   isEnabled: boolean
 }
 
 /**
- * 補正レベルを管理するための React Hook
+ * React Hook for managing stabilization level
  *
  * @example
  * ```tsx
@@ -45,7 +45,7 @@ export interface UseStabilizationLevelReturn {
  *         onChange={(e) => setLevel(Number(e.target.value))}
  *       />
  *       <span>{level}%</span>
- *       {isEnabled && <span>補正有効</span>}
+ *       {isEnabled && <span>Stabilization enabled</span>}
  *     </div>
  *   )
  * }

@@ -1,17 +1,17 @@
 import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface MovingAverageFilterParams {
-  /** 平均化するポイント数 */
+  /** Number of points to average */
   windowSize: number
 }
 
 const FILTER_TYPE = 'movingAverage' as const
 
 /**
- * 移動平均フィルタ
+ * Moving average filter
  *
- * 直近 N ポイントの平均を取ることで平滑化を行う。
- * ガウシアンフィルタよりシンプルだが高速。
+ * Smooths by averaging the last N points.
+ * Simpler and faster than Gaussian filter.
  */
 class MovingAverageFilterImpl implements UpdatableFilter<MovingAverageFilterParams> {
   readonly type = FILTER_TYPE
@@ -25,12 +25,12 @@ class MovingAverageFilterImpl implements UpdatableFilter<MovingAverageFilterPara
   process(point: PointerPoint): PointerPoint | null {
     this.window.push(point)
 
-    // ウィンドウサイズを超えたら古いポイントを削除
+    // Remove old points when exceeding window size
     while (this.window.length > this.params.windowSize) {
       this.window.shift()
     }
 
-    // 平均を計算
+    // Calculate average
     let sumX = 0
     let sumY = 0
     let sumPressure = 0
@@ -60,7 +60,7 @@ class MovingAverageFilterImpl implements UpdatableFilter<MovingAverageFilterPara
 
   updateParams(params: Partial<MovingAverageFilterParams>): void {
     this.params = { ...this.params, ...params }
-    // ウィンドウサイズが小さくなった場合、古いポイントを削除
+    // Remove old points if window size decreased
     while (this.window.length > this.params.windowSize) {
       this.window.shift()
     }
@@ -72,7 +72,7 @@ class MovingAverageFilterImpl implements UpdatableFilter<MovingAverageFilterPara
 }
 
 /**
- * 移動平均フィルタを作成
+ * Create a moving average filter
  *
  * @example
  * ```ts

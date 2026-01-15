@@ -2,21 +2,21 @@ import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface OneEuroFilterParams {
   /**
-   * 最小カットオフ周波数 (Hz)
-   * 低速時の平滑化強度。小さいほど滑らか。
-   * 推奨: 0.5 - 2.0
+   * Minimum cutoff frequency (Hz)
+   * Smoothing strength at low speed. Lower = smoother.
+   * Recommended: 0.5 - 2.0
    */
   minCutoff: number
   /**
-   * 速度係数
-   * 速度に応じたカットオフ周波数の増加率。
-   * 大きいほど高速時に敏感になる。
-   * 推奨: 0.001 - 0.01
+   * Speed coefficient
+   * Rate of cutoff frequency increase based on speed.
+   * Higher = more responsive at high speed.
+   * Recommended: 0.001 - 0.01
    */
   beta: number
   /**
-   * 微分カットオフ周波数 (Hz)
-   * 速度推定の平滑化。通常は 1.0 で固定。
+   * Derivative cutoff frequency (Hz)
+   * Smoothing for velocity estimation. Usually fixed at 1.0.
    */
   dCutoff?: number
 }
@@ -24,7 +24,7 @@ export interface OneEuroFilterParams {
 const FILTER_TYPE = 'oneEuro' as const
 
 /**
- * 低域通過フィルタ（内部用）
+ * Low-pass filter (internal use)
  */
 class LowPassFilter {
   private y: number | null = null
@@ -55,11 +55,11 @@ class LowPassFilter {
 /**
  * One Euro Filter
  *
- * 速度適応型ローパスフィルタ。
- * - 低速時: 強い平滑化（ジッター除去）
- * - 高速時: 軽い平滑化（遅延を減らす）
+ * Speed-adaptive low-pass filter.
+ * - At low speed: Strong smoothing (jitter removal)
+ * - At high speed: Light smoothing (reduce latency)
  *
- * 論文: https://cristal.univ-lille.fr/~casiez/1euro/
+ * Paper: https://cristal.univ-lille.fr/~casiez/1euro/
  */
 class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
   readonly type = FILTER_TYPE
@@ -81,8 +81,8 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
   }
 
   process(point: PointerPoint): PointerPoint | null {
-    // サンプリングレートを計算
-    let rate = 60 // デフォルト 60Hz
+    // Calculate sampling rate
+    let rate = 60 // Default 60Hz
     if (this.lastTimestamp !== null) {
       const dt = (point.timestamp - this.lastTimestamp) / 1000
       if (dt > 0) {
@@ -93,7 +93,7 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
 
     const { minCutoff, beta, dCutoff } = this.params
 
-    // X軸の処理
+    // Process X axis
     const newX = this.filterAxis(
       point.x,
       this.xFilter,
@@ -104,7 +104,7 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
       dCutoff!
     )
 
-    // Y軸の処理
+    // Process Y axis
     const newY = this.filterAxis(
       point.y,
       this.yFilter,
@@ -115,10 +115,10 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
       dCutoff!
     )
 
-    // Pressureの処理（あれば）
+    // Process pressure (if present)
     let newPressure: number | undefined
     if (point.pressure !== undefined) {
-      // pressureは速度適応なしの単純EMA
+      // Pressure uses simple EMA without speed adaptation
       const alpha = this.computeAlpha(minCutoff, rate)
       this.pressureFilter.setAlpha(alpha)
       newPressure = this.pressureFilter.filter(point.pressure)
@@ -141,24 +141,24 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
     beta: number,
     dCutoff: number
   ): number {
-    // 前回の値を取得
+    // Get previous value
     const prevValue = valueFilter.lastValue()
 
-    // 微分（速度）を計算
+    // Calculate derivative (velocity)
     let dValue = 0
     if (prevValue !== null) {
       dValue = (value - prevValue) * rate
     }
 
-    // 微分をフィルタリング
+    // Filter the derivative
     const dAlpha = this.computeAlpha(dCutoff, rate)
     derivFilter.setAlpha(dAlpha)
     const filteredDValue = derivFilter.filter(dValue)
 
-    // 速度に応じてカットオフ周波数を調整
+    // Adjust cutoff frequency based on speed
     const cutoff = minCutoff + beta * Math.abs(filteredDValue)
 
-    // 値をフィルタリング
+    // Filter the value
     const alpha = this.computeAlpha(cutoff, rate)
     valueFilter.setAlpha(alpha)
     return valueFilter.filter(value)
@@ -185,24 +185,24 @@ class OneEuroFilterImpl implements UpdatableFilter<OneEuroFilterParams> {
 }
 
 /**
- * One Euro Filter を作成
+ * Create a One Euro Filter
  *
- * 速度適応型ローパスフィルタ。
- * 低速時は強く平滑化し、高速時は敏感に追従する。
+ * Speed-adaptive low-pass filter.
+ * Strong smoothing at low speed, responsive at high speed.
  *
  * @example
  * ```ts
- * // バランスの取れた設定
+ * // Balanced settings
  * const pointer = new StabilizedPointer()
  *   .addFilter(oneEuroFilter({
  *     minCutoff: 1.0,
  *     beta: 0.007
  *   }))
  *
- * // より滑らか（遅延大）
+ * // Smoother (higher latency)
  * const smooth = oneEuroFilter({ minCutoff: 0.5, beta: 0.001 })
  *
- * // より敏感（ジッター残る可能性）
+ * // More responsive (may have jitter)
  * const responsive = oneEuroFilter({ minCutoff: 2.0, beta: 0.01 })
  * ```
  */

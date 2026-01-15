@@ -3,7 +3,7 @@ import type { PaddingMode, SmoothOptions, Kernel } from './kernels/types'
 import { isAdaptiveKernel } from './kernels/types'
 
 /**
- * パディングを適用してポイント配列を拡張
+ * Apply padding to extend point array
  */
 function applyPadding(
   points: Point[],
@@ -14,7 +14,7 @@ function applyPadding(
 
   const padded: Point[] = []
 
-  // 先頭パディング
+  // Leading padding
   for (let i = halfSize; i > 0; i--) {
     switch (mode) {
       case 'reflect':
@@ -29,10 +29,10 @@ function applyPadding(
     }
   }
 
-  // 元データ
+  // Original data
   padded.push(...points)
 
-  // 末尾パディング
+  // Trailing padding
   for (let i = 1; i <= halfSize; i++) {
     switch (mode) {
       case 'reflect':
@@ -51,22 +51,22 @@ function applyPadding(
 }
 
 /**
- * 双方向畳み込みによる平滑化
+ * Bidirectional convolution smoothing
  *
- * 固定重みカーネル（Gaussian, Box, Triangle）と
- * 適応型カーネル（Bilateral）の両方に対応。
+ * Supports both fixed-weight kernels (Gaussian, Box, Triangle) and
+ * adaptive kernels (Bilateral).
  *
  * @example
  * ```ts
  * import { smooth, gaussianKernel, bilateralKernel } from '@stroke-stabilizer/core'
  *
- * // 通常の畳み込み
+ * // Standard convolution
  * const smoothed = smooth(points, {
  *   kernel: gaussianKernel({ size: 7 }),
  *   padding: 'reflect',
  * })
  *
- * // バイラテラル（エッジ保存）
+ * // Bilateral (edge-preserving)
  * const edgePreserved = smooth(points, {
  *   kernel: bilateralKernel({ size: 7, sigmaValue: 10 }),
  *   padding: 'reflect',
@@ -78,7 +78,7 @@ export function smooth(points: Point[], options: SmoothOptions): Point[] {
 
   if (points.length === 0) return []
 
-  // 適応型カーネル（Bilateral等）
+  // Adaptive kernel (Bilateral, etc.)
   if (isAdaptiveKernel(kernel)) {
     const halfSize = Math.floor(kernel.size / 2)
     const padded = applyPadding(points, halfSize, padding)
@@ -110,7 +110,7 @@ export function smooth(points: Point[], options: SmoothOptions): Point[] {
     return result
   }
 
-  // 固定重みカーネル（Gaussian, Box, Triangle等）
+  // Fixed-weight kernel (Gaussian, Box, Triangle, etc.)
   const fixedKernel = kernel as Kernel
   const { weights } = fixedKernel
 

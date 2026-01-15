@@ -73,13 +73,13 @@ describe('KalmanFilter', () => {
   it('should smooth noisy input', () => {
     const filter = kalmanFilter({ processNoise: 0.1, measurementNoise: 1.0 })
 
-    // 直線上のポイント + ノイズ
+    // Points on a line + noise
     const results: PointerPoint[] = []
     const noisyPoints = [
       createPoint(0, 0, 0),
-      createPoint(12, 8, 100), // ノイズあり（理想: 10, 10）
-      createPoint(18, 22, 200), // ノイズあり（理想: 20, 20）
-      createPoint(32, 28, 300), // ノイズあり（理想: 30, 30）
+      createPoint(12, 8, 100), // Noisy (ideal: 10, 10)
+      createPoint(18, 22, 200), // Noisy (ideal: 20, 20)
+      createPoint(32, 28, 300), // Noisy (ideal: 30, 30)
     ]
 
     for (const point of noisyPoints) {
@@ -87,7 +87,7 @@ describe('KalmanFilter', () => {
       if (result) results.push(result)
     }
 
-    // カルマンフィルタが平滑化しているはず
+    // Kalman filter should smooth
     expect(results.length).toBe(4)
   })
 
@@ -188,7 +188,7 @@ describe('StringFilter', () => {
     filter.process(createPoint(0, 0, 0))
     const result = filter.process(createPoint(20, 0, 100)) // distance = 20
 
-    // アンカーは 20 - 10 = 10 だけ移動
+    // Anchor moves 20 - 10 = 10
     expect(result?.x).toBe(10)
     expect(result?.y).toBe(0)
   })
@@ -241,15 +241,15 @@ describe('EmaFilter', () => {
     const resultHigh = filterHigh.process(createPoint(100, 100, 100))
     const resultLow = filterLow.process(createPoint(100, 100, 100))
 
-    // alpha=0.9 は新しい値を重視 → 100 に近い
-    // alpha=0.1 は古い値を重視 → 0 に近い
+    // alpha=0.9 emphasizes new value -> closer to 100
+    // alpha=0.1 emphasizes old value -> closer to 0
     expect(resultHigh?.x).toBeGreaterThan(resultLow?.x ?? 0)
   })
 
   it('should smooth noisy input over time', () => {
     const filter = emaFilter({ alpha: 0.3 })
 
-    // ジグザグ入力
+    // Zigzag input
     const points = [
       createPoint(0, 0, 0),
       createPoint(10, 20, 100),
@@ -263,7 +263,7 @@ describe('EmaFilter', () => {
       lastResult = filter.process(p)
     }
 
-    // 平滑化されているので極端な値にはならない
+    // Smoothed so not extreme values
     expect(lastResult?.x).toBeGreaterThan(0)
     expect(lastResult?.x).toBeLessThan(15)
   })
@@ -289,7 +289,7 @@ describe('EmaFilter', () => {
     filter.process(createPoint(100, 100, 0))
     filter.reset()
 
-    // リセット後、最初のポイントはそのまま返る
+    // After reset, first point returns as-is
     const point = createPoint(10, 10, 100)
     const result = filter.process(point)
     expect(result?.x).toBe(10)
@@ -316,31 +316,31 @@ describe('OneEuroFilter', () => {
   it('should smooth slow movements strongly', () => {
     const filter = oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
 
-    // ゆっくり動く（時間間隔が長い）
+    // Slow movement (long time interval)
     filter.process(createPoint(0, 0, 0))
-    filter.process(createPoint(1, 1, 100)) // 0.1秒後に1px
+    filter.process(createPoint(1, 1, 100)) // 1px after 0.1 seconds
     const result = filter.process(createPoint(2, 2, 200))
 
-    // 低速なので強く平滑化される → 入力値より遅れる
+    // Slow speed = strong smoothing -> lags behind input
     expect(result?.x).toBeLessThan(2)
     expect(result?.y).toBeLessThan(2)
   })
 
   it('should be more responsive to fast movements', () => {
-    // 同じフィルタに対して低速と高速の入力を比較
-    const filter = oneEuroFilter({ minCutoff: 1.0, beta: 0.1 }) // 高めのbeta
+    // Compare slow and fast inputs with same filter
+    const filter = oneEuroFilter({ minCutoff: 1.0, beta: 0.1 }) // High beta
 
-    // 低速入力 (10px/秒)
+    // Slow input (10px/sec)
     filter.process(createPoint(0, 0, 0))
     const slowResult = filter.process(createPoint(10, 10, 1000))
 
     filter.reset()
 
-    // 高速入力 (1000px/秒)
+    // Fast input (1000px/sec)
     filter.process(createPoint(0, 0, 0))
     const fastResult = filter.process(createPoint(100, 100, 100))
 
-    // 高速の方が入力値に対する追従率が高い
+    // Fast movement has higher tracking ratio
     const slowRatio = (slowResult?.x ?? 0) / 10
     const fastRatio = (fastResult?.x ?? 0) / 100
 
@@ -350,7 +350,7 @@ describe('OneEuroFilter', () => {
   it('should smooth jittery input', () => {
     const filter = oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
 
-    // ジッターのある入力（同じ場所で細かく震える）
+    // Jittery input (small oscillations at same location)
     const results: PointerPoint[] = []
     const jitteryPoints = [
       createPoint(100, 100, 0),
@@ -365,7 +365,7 @@ describe('OneEuroFilter', () => {
       if (result) results.push(result)
     }
 
-    // フィルタ後は変動が小さくなる
+    // Variance should be smaller after filtering
     const inputVariance = computeVariance(jitteryPoints.map((p) => p.x))
     const outputVariance = computeVariance(results.map((p) => p.x))
 
@@ -376,14 +376,14 @@ describe('OneEuroFilter', () => {
     const lowBeta = oneEuroFilter({ minCutoff: 1.0, beta: 0.001 })
     const highBeta = oneEuroFilter({ minCutoff: 1.0, beta: 0.1 })
 
-    // 同じ高速入力
+    // Same fast input
     lowBeta.process(createPoint(0, 0, 0))
     highBeta.process(createPoint(0, 0, 0))
 
     const lowResult = lowBeta.process(createPoint(100, 100, 16))
     const highResult = highBeta.process(createPoint(100, 100, 16))
 
-    // 高いbetaの方が高速時により敏感（入力に近い）
+    // Higher beta = more responsive at high speed (closer to input)
     expect(highResult?.x).toBeGreaterThan(lowResult?.x ?? 0)
   })
 
@@ -398,7 +398,7 @@ describe('OneEuroFilter', () => {
       timestamp: 100,
     })
 
-    // pressureも平滑化される
+    // Pressure is also smoothed
     expect(result?.pressure).toBeGreaterThan(0.5)
     expect(result?.pressure).toBeLessThan(1.0)
   })
@@ -410,7 +410,7 @@ describe('OneEuroFilter', () => {
     filter.process(createPoint(110, 110, 100))
     filter.reset()
 
-    // リセット後、最初のポイントはそのまま返る
+    // After reset, first point returns as-is
     const point = createPoint(0, 0, 200)
     const result = filter.process(point)
     expect(result?.x).toBe(0)
@@ -441,16 +441,16 @@ describe('LinearPredictionFilter', () => {
     const filter = linearPredictionFilter({
       historySize: 3,
       predictionFactor: 0.5,
-      smoothing: 1.0, // スムージングなしで純粋な予測を見る
+      smoothing: 1.0, // No smoothing for pure prediction test
     })
 
-    // 等速直線運動をシミュレート（100px/秒）
+    // Simulate constant velocity motion (100px/sec)
     filter.process(createPoint(0, 0, 0))
     filter.process(createPoint(10, 10, 100))
     filter.process(createPoint(20, 20, 200))
     const result = filter.process(createPoint(30, 30, 300))
 
-    // 予測により入力値を上回るはず
+    // Prediction should exceed input value
     expect(result?.x).toBeGreaterThanOrEqual(30)
     expect(result?.y).toBeGreaterThanOrEqual(30)
   })
@@ -462,7 +462,7 @@ describe('LinearPredictionFilter', () => {
       smoothing: 0.6,
     })
 
-    // 連続した入力に対して出力がある
+    // Should produce output for consecutive inputs
     const results: PointerPoint[] = []
     const points = [
       createPoint(0, 0, 0),
@@ -477,7 +477,7 @@ describe('LinearPredictionFilter', () => {
     }
 
     expect(results.length).toBe(4)
-    // 平滑化されているので、最後の出力は入力と異なる可能性がある
+    // Smoothed, so last output may differ from input
     expect(results[3]).toBeDefined()
   })
 
@@ -488,7 +488,7 @@ describe('LinearPredictionFilter', () => {
       smoothing: 0.5,
     })
 
-    // ジッターのある入力
+    // Jittery input
     const results: PointerPoint[] = []
     const jitteryPoints = [
       createPoint(0, 0, 0),
@@ -503,12 +503,12 @@ describe('LinearPredictionFilter', () => {
       if (result) results.push(result)
     }
 
-    // 平滑化されているはず
+    // Should be smoothed
     expect(results.length).toBe(5)
-    // 変動が元データよりも小さいことを確認
+    // Variance should not exceed original data too much
     const inputVariance = computeVariance(jitteryPoints.map((p) => p.x))
     const outputVariance = computeVariance(results.map((p) => p.x))
-    // 予測+平滑化により多少の変動はあるが、極端にはならない
+    // Some variance from prediction+smoothing, but not extreme
     expect(outputVariance).toBeLessThan(inputVariance * 2)
   })
 
@@ -540,7 +540,7 @@ describe('LinearPredictionFilter', () => {
     filter.process(createPoint(110, 110, 100))
     filter.reset()
 
-    // リセット後、最初のポイントはそのまま返る
+    // After reset, first point returns as-is
     const point = createPoint(0, 0, 200)
     const result = filter.process(point)
     expect(result?.x).toBe(0)
@@ -556,7 +556,7 @@ describe('LinearPredictionFilter', () => {
   })
 })
 
-// ヘルパー関数
+// Helper function
 function computeVariance(values: number[]): number {
   const mean = values.reduce((a, b) => a + b, 0) / values.length
   return values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length

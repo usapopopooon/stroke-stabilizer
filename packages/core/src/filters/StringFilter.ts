@@ -1,17 +1,17 @@
 import type { Filter, PointerPoint, UpdatableFilter } from '../types'
 
 export interface StringFilterParams {
-  /** 紐の長さ（px）: デッドゾーンの半径 */
+  /** String length (px): Dead zone radius */
   stringLength: number
 }
 
 const FILTER_TYPE = 'string' as const
 
 /**
- * 紐補正フィルタ（Lazy Brush / String Stabilization）
+ * String stabilization filter (Lazy Brush / String Stabilization)
  *
- * ペン先と描画点の間に仮想的な「紐」があるかのように動作。
- * 紐の長さ以内の移動では描画点は動かず、超えると引っ張られる。
+ * Behaves as if there's a virtual "string" between the pen tip and drawing point.
+ * Drawing point doesn't move within the string length, but gets pulled when exceeded.
  */
 class StringFilterImpl implements UpdatableFilter<StringFilterParams> {
   readonly type = FILTER_TYPE
@@ -32,7 +32,7 @@ class StringFilterImpl implements UpdatableFilter<StringFilterParams> {
     const dy = point.y - this.anchorPoint.y
     const distance = Math.sqrt(dx * dx + dy * dy)
 
-    // 紐の長さ以内ならアンカーポイントを返す（動かない）
+    // Within string length, return anchor point (no movement)
     if (distance <= this.params.stringLength) {
       return {
         ...this.anchorPoint,
@@ -41,7 +41,7 @@ class StringFilterImpl implements UpdatableFilter<StringFilterParams> {
       }
     }
 
-    // 紐の長さを超えた分だけ移動
+    // Move by the amount exceeding string length
     const ratio = (distance - this.params.stringLength) / distance
     const newX = this.anchorPoint.x + dx * ratio
     const newY = this.anchorPoint.y + dy * ratio
@@ -66,7 +66,7 @@ class StringFilterImpl implements UpdatableFilter<StringFilterParams> {
 }
 
 /**
- * 紐補正フィルタを作成
+ * Create a string stabilization filter
  *
  * @example
  * ```ts

@@ -1,18 +1,18 @@
 import { ref, computed, watch } from 'vue'
 
 export interface UseStabilizationLevelOptions {
-  /** 初期値（デフォルト: 0） */
+  /** Initial value (default: 0) */
   initialLevel?: number
-  /** 最小値（デフォルト: 0） */
+  /** Minimum value (default: 0) */
   min?: number
-  /** 最大値（デフォルト: 100） */
+  /** Maximum value (default: 100) */
   max?: number
-  /** 変更時のコールバック */
+  /** Callback when level changes */
   onChange?: (level: number) => void
 }
 
 /**
- * 補正レベルを管理するための Vue Composable
+ * Vue Composable for managing stabilization level
  *
  * @example
  * ```vue
@@ -35,7 +35,7 @@ export interface UseStabilizationLevelOptions {
  *       @input="setLevel(Number(($event.target as HTMLInputElement).value))"
  *     />
  *     <span>{{ level }}%</span>
- *     <span v-if="isEnabled">補正有効</span>
+ *     <span v-if="isEnabled">Stabilization enabled</span>
  *   </div>
  * </template>
  * ```
@@ -47,7 +47,7 @@ export function useStabilizationLevel(
 
   const level = ref(Math.max(min, Math.min(max, initialLevel)))
 
-  // 変更を監視
+  // Watch for changes
   watch(level, (newValue) => {
     onChange?.(newValue)
   })

@@ -3,7 +3,7 @@ import type { Kernel, PaddingMode } from './kernels/types'
 import { smooth } from './smooth'
 
 /**
- * 事後処理の設定
+ * Post-processor configuration
  */
 interface PostProcessor {
   kernel: Kernel
@@ -11,24 +11,24 @@ interface PostProcessor {
 }
 
 /**
- * Dynamic Pipeline Pattern の実装
+ * Dynamic Pipeline Pattern implementation
  *
- * リアルタイムでフィルタの追加・削除・更新が可能なパイプライン。
- * .build() 呼び出しが不要で、常に実行可能な状態を維持する。
+ * A pipeline that allows adding, removing, and updating filters at runtime.
+ * Always ready to execute without requiring a .build() call.
  *
  * @example
  * ```ts
  * const pointer = new StabilizedPointer()
- *   // リアルタイム層
+ *   // Real-time layer
  *   .addFilter(noiseFilter({ minDistance: 2 }))
  *   .addFilter(kalmanFilter({ processNoise: 0.1 }))
- *   // 事後処理層
+ *   // Post-processing layer
  *   .addPostProcess(gaussianKernel({ size: 7 }))
  *
- * // 描画中
+ * // During drawing
  * pointer.process(point)
  *
- * // 完了時
+ * // On completion
  * const finalStroke = pointer.finish()
  * ```
  */
@@ -38,8 +38,8 @@ export class StabilizedPointer {
   private buffer: PointerPoint[] = []
 
   /**
-   * フィルタをパイプラインに追加
-   * @returns this（メソッドチェーン用）
+   * Add a filter to the pipeline
+   * @returns this (for method chaining)
    */
   addFilter(filter: Filter): this {
     this.filters.push(filter)
@@ -47,8 +47,8 @@ export class StabilizedPointer {
   }
 
   /**
-   * 指定タイプのフィルタを削除
-   * @returns 削除成功: true, 見つからない: false
+   * Remove a filter by type
+   * @returns true if removed, false if not found
    */
   removeFilter(type: string): boolean {
     const index = this.filters.findIndex((f) => f.type === type)
@@ -58,8 +58,8 @@ export class StabilizedPointer {
   }
 
   /**
-   * 指定タイプのフィルタのパラメータを更新
-   * @returns 更新成功: true, 見つからない: false
+   * Update parameters of a filter by type
+   * @returns true if updated, false if not found
    */
   updateFilter<TParams>(type: string, params: Partial<TParams>): boolean {
     const filter = this.filters.find((f) => f.type === type)
@@ -73,29 +73,29 @@ export class StabilizedPointer {
   }
 
   /**
-   * 指定タイプのフィルタを取得
+   * Get a filter by type
    */
   getFilter(type: string): Filter | undefined {
     return this.filters.find((f) => f.type === type)
   }
 
   /**
-   * 現在のフィルタタイプ一覧を取得
+   * Get list of current filter types
    */
   getFilterTypes(): string[] {
     return this.filters.map((f) => f.type)
   }
 
   /**
-   * フィルタが存在するか確認
+   * Check if a filter exists
    */
   hasFilter(type: string): boolean {
     return this.filters.some((f) => f.type === type)
   }
 
   /**
-   * ポイントをパイプラインで処理
-   * @returns 処理結果（フィルタで棄却された場合はnull）
+   * Process a point through the pipeline
+   * @returns Processed result (null if rejected by a filter)
    */
   process(point: PointerPoint): PointerPoint | null {
     let current: PointerPoint | null = point
@@ -113,8 +113,8 @@ export class StabilizedPointer {
   }
 
   /**
-   * 複数ポイントを一括処理
-   * @returns 処理結果の配列（null は除外）
+   * Process multiple points at once
+   * @returns Array of processed results (nulls excluded)
    */
   processAll(points: PointerPoint[]): PointerPoint[] {
     const results: PointerPoint[] = []
@@ -128,14 +128,14 @@ export class StabilizedPointer {
   }
 
   /**
-   * 処理済みバッファを取得
+   * Get the processed buffer
    */
   getBuffer(): readonly PointerPoint[] {
     return this.buffer
   }
 
   /**
-   * 処理済みバッファをクリアして返す
+   * Clear and return the processed buffer
    */
   flushBuffer(): PointerPoint[] {
     const flushed = [...this.buffer]
@@ -144,7 +144,7 @@ export class StabilizedPointer {
   }
 
   /**
-   * 全フィルタとバッファをリセット
+   * Reset all filters and buffer
    */
   reset(): void {
     for (const filter of this.filters) {
@@ -154,7 +154,7 @@ export class StabilizedPointer {
   }
 
   /**
-   * パイプラインをクリア（全フィルタを削除）
+   * Clear the pipeline (remove all filters)
    */
   clear(): void {
     this.filters = []
@@ -163,19 +163,19 @@ export class StabilizedPointer {
   }
 
   /**
-   * フィルタ数を取得
+   * Get number of filters
    */
   get length(): number {
     return this.filters.length
   }
 
   // ========================================
-  // 事後処理層（Post Process）
+  // Post-processing layer
   // ========================================
 
   /**
-   * 事後処理をパイプラインに追加
-   * @returns this（メソッドチェーン用）
+   * Add post-processor to the pipeline
+   * @returns this (for method chaining)
    */
   addPostProcess(
     kernel: Kernel,
@@ -189,8 +189,8 @@ export class StabilizedPointer {
   }
 
   /**
-   * 指定タイプの事後処理を削除
-   * @returns 削除成功: true, 見つからない: false
+   * Remove a post-processor by type
+   * @returns true if removed, false if not found
    */
   removePostProcess(type: string): boolean {
     const index = this.postProcessors.findIndex((p) => p.kernel.type === type)
@@ -200,34 +200,34 @@ export class StabilizedPointer {
   }
 
   /**
-   * 事後処理が存在するか確認
+   * Check if a post-processor exists
    */
   hasPostProcess(type: string): boolean {
     return this.postProcessors.some((p) => p.kernel.type === type)
   }
 
   /**
-   * 事後処理のタイプ一覧を取得
+   * Get list of post-processor types
    */
   getPostProcessTypes(): string[] {
     return this.postProcessors.map((p) => p.kernel.type)
   }
 
   /**
-   * 事後処理数を取得
+   * Get number of post-processors
    */
   get postProcessLength(): number {
     return this.postProcessors.length
   }
 
   /**
-   * ストロークを完了し、事後処理を適用した結果を返す
-   * バッファはクリアされ、フィルタはリセットされる
+   * Finish the stroke and return post-processed results
+   * Buffer is cleared and filters are reset
    */
   finish(): Point[] {
     let points: Point[] = [...this.buffer]
 
-    // 事後処理を順に適用
+    // Apply post-processors in order
     for (const processor of this.postProcessors) {
       points = smooth(points, {
         kernel: processor.kernel,
@@ -235,7 +235,7 @@ export class StabilizedPointer {
       })
     }
 
-    // リセット
+    // Reset
     this.reset()
 
     return points
