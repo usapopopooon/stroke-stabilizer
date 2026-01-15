@@ -1,5 +1,4 @@
 # @stroke-stabilizer/core
-
 [![npm version](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core)
 
 > Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
