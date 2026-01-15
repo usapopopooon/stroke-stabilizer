@@ -1,5 +1,7 @@
 # @stroke-stabilizer/react
 
+> Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+
 React hooks for stroke stabilization in digital drawing applications.
 
 ## Installation

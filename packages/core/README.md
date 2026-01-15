@@ -1,5 +1,7 @@
 # @stroke-stabilizer/core
 
+> Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+
 A lightweight, framework-agnostic stroke stabilization library for digital drawing applications.
 
 Reduce hand tremor and smooth pen/mouse input in real-time using a flexible filter pipeline.

@@ -1,5 +1,7 @@
 # @stroke-stabilizer/vue
 
+> Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+
 Vue composables for stroke stabilization in digital drawing applications.
 
 ## Installation
