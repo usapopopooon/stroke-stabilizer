@@ -47,7 +47,8 @@ class MovingAverageFilterImpl implements UpdatableFilter<MovingAverageFilterPara
 
     const avgX = sumX / this.window.length
     const avgY = sumY / this.window.length
-    const avgPressure = pressureCount > 0 ? sumPressure / pressureCount : undefined
+    const avgPressure =
+      pressureCount > 0 ? sumPressure / pressureCount : undefined
 
     return {
       x: avgX,

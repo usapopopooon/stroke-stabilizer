@@ -40,7 +40,9 @@ export interface UseStabilizationLevelOptions {
  * </template>
  * ```
  */
-export function useStabilizationLevel(options: UseStabilizationLevelOptions = {}) {
+export function useStabilizationLevel(
+  options: UseStabilizationLevelOptions = {}
+) {
   const { initialLevel = 0, min = 0, max = 100, onChange } = options
 
   const level = ref(Math.max(min, Math.min(max, initialLevel)))

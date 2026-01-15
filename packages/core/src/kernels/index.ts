@@ -1,4 +1,10 @@
-export type { Kernel, AdaptiveKernel, AnyKernel, PaddingMode, SmoothOptions } from './types'
+export type {
+  Kernel,
+  AdaptiveKernel,
+  AnyKernel,
+  PaddingMode,
+  SmoothOptions,
+} from './types'
 export { isAdaptiveKernel } from './types'
 
 export { gaussianKernel } from './gaussianKernel'

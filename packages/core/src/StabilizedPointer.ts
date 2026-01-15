@@ -177,7 +177,10 @@ export class StabilizedPointer {
    * 事後処理をパイプラインに追加
    * @returns this（メソッドチェーン用）
    */
-  addPostProcess(kernel: Kernel, options: { padding?: PaddingMode } = {}): this {
+  addPostProcess(
+    kernel: Kernel,
+    options: { padding?: PaddingMode } = {}
+  ): this {
     this.postProcessors.push({
       kernel,
       padding: options.padding ?? 'reflect',

@@ -46,7 +46,9 @@ export interface BilateralKernel {
  * })
  * ```
  */
-export function bilateralKernel(params: BilateralKernelParams): BilateralKernel {
+export function bilateralKernel(
+  params: BilateralKernelParams
+): BilateralKernel {
   const { size, sigmaValue } = params
   const actualSize = size % 2 === 0 ? size + 1 : size
   const sigmaSpace = params.sigmaSpace ?? actualSize / 3

@@ -8,7 +8,11 @@ import { oneEuroFilter } from './OneEuroFilter'
 import { linearPredictionFilter } from './LinearPredictionFilter'
 import type { PointerPoint } from '../types'
 
-function createPoint(x: number, y: number, timestamp = Date.now()): PointerPoint {
+function createPoint(
+  x: number,
+  y: number,
+  timestamp = Date.now()
+): PointerPoint {
   return { x, y, timestamp }
 }
 
@@ -91,7 +95,12 @@ describe('KalmanFilter', () => {
     const filter = kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
 
     filter.process(createPoint(0, 0, 0))
-    const result = filter.process({ x: 10, y: 10, pressure: 0.8, timestamp: 100 })
+    const result = filter.process({
+      x: 10,
+      y: 10,
+      pressure: 0.8,
+      timestamp: 100,
+    })
 
     expect(result?.pressure).toBe(0.8)
   })
@@ -139,7 +148,12 @@ describe('MovingAverageFilter', () => {
     const filter = movingAverageFilter({ windowSize: 2 })
 
     filter.process({ x: 0, y: 0, pressure: 0.5, timestamp: 0 })
-    const result = filter.process({ x: 10, y: 10, pressure: 1.0, timestamp: 100 })
+    const result = filter.process({
+      x: 10,
+      y: 10,
+      pressure: 1.0,
+      timestamp: 100,
+    })
 
     expect(result?.pressure).toBe(0.75)
   })
@@ -258,7 +272,12 @@ describe('EmaFilter', () => {
     const filter = emaFilter({ alpha: 0.5 })
 
     filter.process({ x: 0, y: 0, pressure: 0, timestamp: 0 })
-    const result = filter.process({ x: 10, y: 10, pressure: 1.0, timestamp: 100 })
+    const result = filter.process({
+      x: 10,
+      y: 10,
+      pressure: 1.0,
+      timestamp: 100,
+    })
 
     // 0.5 * 1.0 + 0.5 * 0 = 0.5
     expect(result?.pressure).toBe(0.5)
@@ -372,7 +391,12 @@ describe('OneEuroFilter', () => {
     const filter = oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
 
     filter.process({ x: 0, y: 0, pressure: 0.5, timestamp: 0 })
-    const result = filter.process({ x: 10, y: 10, pressure: 1.0, timestamp: 100 })
+    const result = filter.process({
+      x: 10,
+      y: 10,
+      pressure: 1.0,
+      timestamp: 100,
+    })
 
     // pressureも平滑化される
     expect(result?.pressure).toBeGreaterThan(0.5)
@@ -495,7 +519,12 @@ describe('LinearPredictionFilter', () => {
     })
 
     filter.process({ x: 0, y: 0, pressure: 0.5, timestamp: 0 })
-    const result = filter.process({ x: 10, y: 10, pressure: 0.8, timestamp: 100 })
+    const result = filter.process({
+      x: 10,
+      y: 10,
+      pressure: 0.8,
+      timestamp: 100,
+    })
 
     expect(result?.pressure).toBeDefined()
     expect(result?.pressure).toBeGreaterThan(0)

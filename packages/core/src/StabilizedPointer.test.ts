@@ -8,7 +8,11 @@ import { gaussianKernel } from './kernels/gaussianKernel'
 import { boxKernel } from './kernels/boxKernel'
 import type { PointerPoint } from './types'
 
-function createPoint(x: number, y: number, timestamp = Date.now()): PointerPoint {
+function createPoint(
+  x: number,
+  y: number,
+  timestamp = Date.now()
+): PointerPoint {
   return { x, y, timestamp }
 }
 

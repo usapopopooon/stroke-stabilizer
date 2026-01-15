@@ -1,11 +1,15 @@
 import type { Point } from './types'
-import type { PaddingMode, SmoothOptions, AnyKernel, Kernel } from './kernels/types'
+import type { PaddingMode, SmoothOptions, Kernel } from './kernels/types'
 import { isAdaptiveKernel } from './kernels/types'
 
 /**
  * パディングを適用してポイント配列を拡張
  */
-function applyPadding(points: Point[], halfSize: number, mode: PaddingMode): Point[] {
+function applyPadding(
+  points: Point[],
+  halfSize: number,
+  mode: PaddingMode
+): Point[] {
   if (points.length === 0) return []
 
   const padded: Point[] = []

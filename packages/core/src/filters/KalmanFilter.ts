@@ -46,7 +46,10 @@ class KalmanFilterImpl implements UpdatableFilter<KalmanFilterParams> {
       return point
     }
 
-    const dt = Math.max(0.001, (point.timestamp - this.state.lastTimestamp) / 1000)
+    const dt = Math.max(
+      0.001,
+      (point.timestamp - this.state.lastTimestamp) / 1000
+    )
     const { processNoise: Q, measurementNoise: R } = this.params
 
     // 予測ステップ

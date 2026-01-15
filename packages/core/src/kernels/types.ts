@@ -26,7 +26,9 @@ export type AnyKernel = Kernel | AdaptiveKernel
  * カーネルが適応型かどうかを判定
  */
 export function isAdaptiveKernel(kernel: AnyKernel): kernel is AdaptiveKernel {
-  return 'computeWeights' in kernel && typeof kernel.computeWeights === 'function'
+  return (
+    'computeWeights' in kernel && typeof kernel.computeWeights === 'function'
+  )
 }
 
 /**

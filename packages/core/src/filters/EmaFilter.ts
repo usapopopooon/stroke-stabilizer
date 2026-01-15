@@ -43,7 +43,8 @@ class EmaFilterImpl implements UpdatableFilter<EmaFilterParams> {
     // pressure も EMA 適用（存在する場合）
     let newPressure: number | undefined
     if (point.pressure !== undefined && this.lastPoint.pressure !== undefined) {
-      newPressure = alpha * point.pressure + (1 - alpha) * this.lastPoint.pressure
+      newPressure =
+        alpha * point.pressure + (1 - alpha) * this.lastPoint.pressure
     } else {
       newPressure = point.pressure
     }

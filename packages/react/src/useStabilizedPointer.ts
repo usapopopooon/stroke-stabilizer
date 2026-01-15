@@ -153,6 +153,15 @@ export function useStabilizedPointer(
       updateFilter,
       pointer: getPointer(),
     }),
-    [process, processAll, flushBuffer, reset, addFilter, removeFilter, updateFilter, getPointer]
+    [
+      process,
+      processAll,
+      flushBuffer,
+      reset,
+      addFilter,
+      removeFilter,
+      updateFilter,
+      getPointer,
+    ]
   )
 }

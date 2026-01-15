@@ -22,7 +22,11 @@ npm install @stroke-stabilizer/core
 ## Quick Start
 
 ```ts
-import { StabilizedPointer, emaFilter, oneEuroFilter } from '@stroke-stabilizer/core'
+import {
+  StabilizedPointer,
+  emaFilter,
+  oneEuroFilter,
+} from '@stroke-stabilizer/core'
 
 const pointer = new StabilizedPointer()
   .addFilter(emaFilter({ alpha: 0.5 }))
@@ -50,23 +54,23 @@ canvas.addEventListener('pointerup', () => {
 
 ### Real-time Filters
 
-| Filter | Description | Use Case |
-|--------|-------------|----------|
-| `noiseFilter` | Rejects points too close together | Remove jitter |
-| `movingAverageFilter` | Simple moving average (FIR) | Basic smoothing |
-| `emaFilter` | Exponential moving average (IIR) | Low-latency smoothing |
-| `kalmanFilter` | Kalman filter | Noisy input with velocity |
-| `stringFilter` | Lazy Brush algorithm | Delayed, smooth strokes |
-| `oneEuroFilter` | Adaptive lowpass filter | Best balance of smoothness/latency |
-| `linearPredictionFilter` | Predicts next position | Lag compensation |
+| Filter                   | Description                       | Use Case                           |
+| ------------------------ | --------------------------------- | ---------------------------------- |
+| `noiseFilter`            | Rejects points too close together | Remove jitter                      |
+| `movingAverageFilter`    | Simple moving average (FIR)       | Basic smoothing                    |
+| `emaFilter`              | Exponential moving average (IIR)  | Low-latency smoothing              |
+| `kalmanFilter`           | Kalman filter                     | Noisy input with velocity          |
+| `stringFilter`           | Lazy Brush algorithm              | Delayed, smooth strokes            |
+| `oneEuroFilter`          | Adaptive lowpass filter           | Best balance of smoothness/latency |
+| `linearPredictionFilter` | Predicts next position            | Lag compensation                   |
 
 ### Post-processing Kernels
 
-| Kernel | Description |
-|--------|-------------|
-| `gaussianKernel` | Gaussian blur |
-| `boxKernel` | Simple average |
-| `triangleKernel` | Linear falloff |
+| Kernel            | Description               |
+| ----------------- | ------------------------- |
+| `gaussianKernel`  | Gaussian blur             |
+| `boxKernel`       | Simple average            |
+| `triangleKernel`  | Linear falloff            |
 | `bilateralKernel` | Edge-preserving smoothing |
 
 ## Usage Examples
@@ -76,8 +80,9 @@ canvas.addEventListener('pointerup', () => {
 ```ts
 import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 // Process each point
 const smoothed = pointer.process({ x, y, timestamp })
@@ -130,9 +135,9 @@ const smoothed = smooth(points, {
 import { createFromPreset } from '@stroke-stabilizer/core'
 
 // Quick setup with predefined configurations
-const pointer = createFromPreset('smooth')    // Heavy smoothing
+const pointer = createFromPreset('smooth') // Heavy smoothing
 const pointer = createFromPreset('responsive') // Low latency
-const pointer = createFromPreset('balanced')   // Default balance
+const pointer = createFromPreset('balanced') // Default balance
 ```
 
 ## Filter Parameters
@@ -141,9 +146,9 @@ const pointer = createFromPreset('balanced')   // Default balance
 
 ```ts
 oneEuroFilter({
-  minCutoff: 1.0,  // Smoothing at low speed (lower = smoother)
-  beta: 0.007,     // Speed adaptation (higher = more responsive)
-  dCutoff: 1.0,    // Derivative cutoff (usually 1.0)
+  minCutoff: 1.0, // Smoothing at low speed (lower = smoother)
+  beta: 0.007, // Speed adaptation (higher = more responsive)
+  dCutoff: 1.0, // Derivative cutoff (usually 1.0)
 })
 ```
 
@@ -151,7 +156,7 @@ oneEuroFilter({
 
 ```ts
 emaFilter({
-  alpha: 0.5,  // 0-1, higher = more responsive
+  alpha: 0.5, // 0-1, higher = more responsive
 })
 ```
 
@@ -159,8 +164,8 @@ emaFilter({
 
 ```ts
 kalmanFilter({
-  processNoise: 0.1,      // Expected movement variance
-  measurementNoise: 0.5,  // Input noise level
+  processNoise: 0.1, // Expected movement variance
+  measurementNoise: 0.5, // Input noise level
 })
 ```
 
@@ -168,9 +173,9 @@ kalmanFilter({
 
 ```ts
 linearPredictionFilter({
-  historySize: 4,        // Points used for prediction
+  historySize: 4, // Points used for prediction
   predictionFactor: 0.5, // Prediction strength (0-1)
-  smoothing: 0.6,        // Output smoothing
+  smoothing: 0.6, // Output smoothing
 })
 ```
 
@@ -178,7 +183,7 @@ linearPredictionFilter({
 
 ```ts
 stringFilter({
-  stringLength: 10,  // Distance before anchor moves
+  stringLength: 10, // Distance before anchor moves
 })
 ```
 
@@ -186,9 +191,9 @@ stringFilter({
 
 ```ts
 bilateralKernel({
-  size: 7,         // Kernel size (odd number)
-  sigmaValue: 10,  // Edge preservation (lower = sharper edges)
-  sigmaSpace: 2,   // Spatial falloff (optional)
+  size: 7, // Kernel size (odd number)
+  sigmaValue: 10, // Edge preservation (lower = sharper edges)
+  sigmaSpace: 2, // Spatial falloff (optional)
 })
 ```
 

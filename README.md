@@ -4,11 +4,11 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [@stroke-stabilizer/core](./packages/core) | Core library (vanilla JS) |
-| [@stroke-stabilizer/react](./packages/react) | React hooks |
-| [@stroke-stabilizer/vue](./packages/vue) | Vue composables |
+| Package                                      | Description               |
+| -------------------------------------------- | ------------------------- |
+| [@stroke-stabilizer/core](./packages/core)   | Core library (vanilla JS) |
+| [@stroke-stabilizer/react](./packages/react) | React hooks               |
+| [@stroke-stabilizer/vue](./packages/vue)     | Vue composables           |
 
 ## Features
 
@@ -28,8 +28,9 @@ npm install @stroke-stabilizer/core
 ```ts
 import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 canvas.addEventListener('pointermove', (e) => {
   const result = pointer.process({

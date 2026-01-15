@@ -32,10 +32,7 @@ export type {
 } from './filters'
 
 // Presets
-export {
-  createStabilizedPointer,
-  createFromPreset,
-} from './presets'
+export { createStabilizedPointer, createFromPreset } from './presets'
 
 export type { PresetName } from './presets'
 

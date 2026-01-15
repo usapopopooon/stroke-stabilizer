@@ -50,7 +50,9 @@ export interface UseStabilizedPointerOptions {
  * </template>
  * ```
  */
-export function useStabilizedPointer(options: UseStabilizedPointerOptions = {}) {
+export function useStabilizedPointer(
+  options: UseStabilizedPointerOptions = {}
+) {
   const { level, filters, onPoint } = options
 
   // StabilizedPointer インスタンス（リアクティブにしない）

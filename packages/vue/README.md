@@ -21,7 +21,7 @@ const { process, reset, finish } = useStabilizedPointer({
   filters: [oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })],
   onPoint: (point) => {
     draw(point.x, point.y)
-  }
+  },
 })
 
 function handlePointerMove(e: PointerEvent) {
@@ -41,10 +41,7 @@ function handlePointerUp() {
 </script>
 
 <template>
-  <canvas
-    @pointermove="handlePointerMove"
-    @pointerup="handlePointerUp"
-  />
+  <canvas @pointermove="handlePointerMove" @pointerup="handlePointerUp" />
 </template>
 ```
 
@@ -54,15 +51,18 @@ A composable for managing stabilization level with reactive state.
 
 ```vue
 <script setup lang="ts">
-import { useStabilizationLevel, useStabilizedPointer } from '@stroke-stabilizer/vue'
+import {
+  useStabilizationLevel,
+  useStabilizedPointer,
+} from '@stroke-stabilizer/vue'
 
 const { level, setLevel, isEnabled } = useStabilizationLevel({
   initialLevel: 50,
-  onChange: (newLevel) => console.log('Level changed:', newLevel)
+  onChange: (newLevel) => console.log('Level changed:', newLevel),
 })
 
 const { process, reset } = useStabilizedPointer({
-  level: level.value
+  level: level.value,
 })
 </script>
 
@@ -88,11 +88,13 @@ const { process, reset } = useStabilizedPointer({
 Creates a stabilized pointer instance.
 
 **Options:**
+
 - `level` - Stabilization level (0-100). Uses preset when specified
 - `filters` - Custom filter array. Used when level is not specified
 - `onPoint` - Callback when a point is processed
 
 **Returns:**
+
 - `process(point)` - Process a single point
 - `processAll(points)` - Process multiple points
 - `flushBuffer()` - Flush internal buffer
@@ -108,12 +110,14 @@ Creates a stabilized pointer instance.
 Manages stabilization level state.
 
 **Options:**
+
 - `initialLevel` - Initial level (default: 0)
 - `min` - Minimum level (default: 0)
 - `max` - Maximum level (default: 100)
 - `onChange` - Callback when level changes
 
 **Returns:**
+
 - `level` - Computed ref to current level
 - `setLevel(value)` - Set the level
 - `increase(amount?)` - Increase level by amount (default: 10)

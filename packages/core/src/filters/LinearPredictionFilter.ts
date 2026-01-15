@@ -66,17 +66,23 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
     const { velocity, acceleration } = this.estimateMotion()
 
     // 時間差を計算（秒単位）
-    const dt = this.history.length >= 2
-      ? (this.history[this.history.length - 1].timestamp -
-         this.history[this.history.length - 2].timestamp) / 1000
-      : 1 / 60 // デフォルト60fps
+    const dt =
+      this.history.length >= 2
+        ? (this.history[this.history.length - 1].timestamp -
+            this.history[this.history.length - 2].timestamp) /
+          1000
+        : 1 / 60 // デフォルト60fps
 
     // 予測位置を計算
     const { predictionFactor } = this.params
-    const predictedX = point.x + velocity.x * dt * predictionFactor +
-                       0.5 * acceleration.x * dt * dt * predictionFactor
-    const predictedY = point.y + velocity.y * dt * predictionFactor +
-                       0.5 * acceleration.y * dt * dt * predictionFactor
+    const predictedX =
+      point.x +
+      velocity.x * dt * predictionFactor +
+      0.5 * acceleration.x * dt * dt * predictionFactor
+    const predictedY =
+      point.y +
+      velocity.y * dt * predictionFactor +
+      0.5 * acceleration.y * dt * dt * predictionFactor
 
     // 平滑化を適用
     let outputX = predictedX
@@ -88,7 +94,10 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       outputX = s * predictedX + (1 - s) * this.lastOutput.x
       outputY = s * predictedY + (1 - s) * this.lastOutput.y
 
-      if (point.pressure !== undefined && this.lastOutput.pressure !== undefined) {
+      if (
+        point.pressure !== undefined &&
+        this.lastOutput.pressure !== undefined
+      ) {
         outputPressure = s * point.pressure + (1 - s) * this.lastOutput.pressure
       }
     }
@@ -106,7 +115,10 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
   /**
    * 最小二乗法で速度と加速度を推定
    */
-  private estimateMotion(): { velocity: { x: number; y: number }; acceleration: { x: number; y: number } } {
+  private estimateMotion(): {
+    velocity: { x: number; y: number }
+    acceleration: { x: number; y: number }
+  } {
     const n = this.history.length
     if (n < 2) {
       return {
@@ -117,9 +129,9 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
 
     // 時刻を正規化（最初のポイントを0とする）
     const t0 = this.history[0].timestamp
-    const times = this.history.map(p => (p.timestamp - t0) / 1000)
-    const xs = this.history.map(p => p.x)
-    const ys = this.history.map(p => p.y)
+    const times = this.history.map((p) => (p.timestamp - t0) / 1000)
+    const xs = this.history.map((p) => p.x)
+    const ys = this.history.map((p) => p.y)
 
     if (n === 2) {
       // 2点の場合は単純な速度計算
@@ -162,12 +174,20 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
    * 2次多項式の最小二乗フィッティング
    * y = a + b*x + c*x^2
    */
-  private polynomialFit(x: number[], y: number[]): { a: number; b: number; c: number } {
+  private polynomialFit(
+    x: number[],
+    y: number[]
+  ): { a: number; b: number; c: number } {
     const n = x.length
 
     // 正規方程式の係数行列を構築
-    let sumX = 0, sumX2 = 0, sumX3 = 0, sumX4 = 0
-    let sumY = 0, sumXY = 0, sumX2Y = 0
+    let sumX = 0,
+      sumX2 = 0,
+      sumX3 = 0,
+      sumX4 = 0
+    let sumY = 0,
+      sumXY = 0,
+      sumX2Y = 0
 
     for (let i = 0; i < n; i++) {
       const xi = x[i]
@@ -187,15 +207,17 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
     // [sumX,  sumX2,  sumX3 ] [b] = [sumXY ]
     // [sumX2, sumX3,  sumX4 ] [c]   [sumX2Y]
 
-    const det = n * (sumX2 * sumX4 - sumX3 * sumX3) -
-                sumX * (sumX * sumX4 - sumX3 * sumX2) +
-                sumX2 * (sumX * sumX3 - sumX2 * sumX2)
+    const det =
+      n * (sumX2 * sumX4 - sumX3 * sumX3) -
+      sumX * (sumX * sumX4 - sumX3 * sumX2) +
+      sumX2 * (sumX * sumX3 - sumX2 * sumX2)
 
     if (Math.abs(det) < 1e-10) {
       // 行列が特異な場合は線形フィット
       const avgX = sumX / n
       const avgY = sumY / n
-      let num = 0, den = 0
+      let num = 0,
+        den = 0
       for (let i = 0; i < n; i++) {
         num += (x[i] - avgX) * (y[i] - avgY)
         den += (x[i] - avgX) * (x[i] - avgX)
@@ -205,17 +227,23 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
       return { a, b, c: 0 }
     }
 
-    const a = (sumY * (sumX2 * sumX4 - sumX3 * sumX3) -
-               sumX * (sumXY * sumX4 - sumX3 * sumX2Y) +
-               sumX2 * (sumXY * sumX3 - sumX2 * sumX2Y)) / det
+    const a =
+      (sumY * (sumX2 * sumX4 - sumX3 * sumX3) -
+        sumX * (sumXY * sumX4 - sumX3 * sumX2Y) +
+        sumX2 * (sumXY * sumX3 - sumX2 * sumX2Y)) /
+      det
 
-    const b = (n * (sumXY * sumX4 - sumX3 * sumX2Y) -
-               sumY * (sumX * sumX4 - sumX3 * sumX2) +
-               sumX2 * (sumX * sumX2Y - sumXY * sumX2)) / det
+    const b =
+      (n * (sumXY * sumX4 - sumX3 * sumX2Y) -
+        sumY * (sumX * sumX4 - sumX3 * sumX2) +
+        sumX2 * (sumX * sumX2Y - sumXY * sumX2)) /
+      det
 
-    const c = (n * (sumX2 * sumX2Y - sumXY * sumX3) -
-               sumX * (sumX * sumX2Y - sumXY * sumX2) +
-               sumY * (sumX * sumX3 - sumX2 * sumX2)) / det
+    const c =
+      (n * (sumX2 * sumX2Y - sumXY * sumX3) -
+        sumX * (sumX * sumX2Y - sumXY * sumX2) +
+        sumY * (sumX * sumX3 - sumX2 * sumX2)) /
+      det
 
     return { a, b, c }
   }
@@ -260,6 +288,8 @@ class LinearPredictionFilterImpl implements UpdatableFilter<LinearPredictionFilt
  * })
  * ```
  */
-export function linearPredictionFilter(params: LinearPredictionFilterParams): Filter {
+export function linearPredictionFilter(
+  params: LinearPredictionFilterParams
+): Filter {
   return new LinearPredictionFilterImpl(params)
 }

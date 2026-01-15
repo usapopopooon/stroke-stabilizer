@@ -18,7 +18,7 @@ import { oneEuroFilter } from '@stroke-stabilizer/core'
 
 function DrawingCanvas() {
   const pointer = useStabilizedPointer([
-    oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+    oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }),
   ])
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -41,10 +41,7 @@ function DrawingCanvas() {
   }
 
   return (
-    <canvas
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-    />
+    <canvas onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} />
   )
 }
 ```
