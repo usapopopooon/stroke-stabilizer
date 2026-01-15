@@ -47,4 +47,4 @@ See [@stroke-stabilizer/core README](./packages/core/README.md) for full documen
 
 ## License
 
-MIT
+[MIT](./LICENSE)

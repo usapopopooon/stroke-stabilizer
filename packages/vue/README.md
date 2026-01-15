@@ -129,4 +129,4 @@ Manages stabilization level state.
 
 ## License
 
-MIT
+[MIT](../../LICENSE)

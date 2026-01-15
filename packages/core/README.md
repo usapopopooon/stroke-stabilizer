@@ -259,4 +259,4 @@ Input → [Real-time Filters] → process() → Output
 
 ## License
 
-MIT
+[MIT](../../LICENSE)

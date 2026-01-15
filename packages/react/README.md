@@ -84,4 +84,4 @@ Returns a `StabilizedPointer` instance.
 
 ## License
 
-MIT
+[MIT](../../LICENSE)
