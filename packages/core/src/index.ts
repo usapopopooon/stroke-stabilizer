@@ -1,5 +1,6 @@
 // Core
 export { StabilizedPointer } from './StabilizedPointer'
+export type { BatchConfig } from './StabilizedPointer'
 
 // Types
 export type {

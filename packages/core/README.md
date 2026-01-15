@@ -11,6 +11,7 @@ Reduce hand tremor and smooth pen/mouse input in real-time using a flexible filt
 
 - **Dynamic Pipeline Pattern** - Add, remove, and update filters at runtime without rebuilding
 - **Two-layer Processing** - Real-time filters + post-processing convolution
+- **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter
 - **Edge-preserving Smoothing** - Bilateral kernel for sharp corner preservation
 - **TypeScript First** - Full type safety with exported types
@@ -132,6 +133,61 @@ const smoothed = smooth(points, {
 })
 ```
 
+### rAF Batch Processing
+
+For high-frequency input devices (pen tablets, etc.), batch processing reduces CPU load by coalescing pointer events into animation frames.
+
+```ts
+import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
+
+const pointer = new StabilizedPointer()
+  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+  .enableBatching({
+    onBatch: (points) => {
+      // Called once per frame with all processed points
+      drawPoints(points)
+    },
+    onPoint: (point) => {
+      // Called for each processed point (optional)
+      updatePreview(point)
+    },
+  })
+
+canvas.addEventListener('pointermove', (e) => {
+  // Points are queued and processed on next animation frame
+  pointer.queue({
+    x: e.clientX,
+    y: e.clientY,
+    pressure: e.pressure,
+    timestamp: e.timeStamp,
+  })
+})
+
+canvas.addEventListener('pointerup', () => {
+  // Flush any pending points and apply post-processing
+  const finalPoints = pointer.finish()
+})
+```
+
+**Batch processing methods:**
+
+```ts
+// Enable/disable batching (method chaining)
+pointer.enableBatching({ onBatch, onPoint })
+pointer.disableBatching()
+
+// Queue points for batch processing
+pointer.queue(point)
+pointer.queueAll(points)
+
+// Force immediate processing
+pointer.flushBatch()
+
+// Check state
+pointer.isBatchingEnabled // boolean
+pointer.pendingCount // number of queued points
+```
+
 ### Presets
 
 ```ts
@@ -220,6 +276,15 @@ class StabilizedPointer {
   process(point: PointerPoint): PointerPoint | null
   finish(): Point[]
   reset(): void
+
+  // Batch processing (rAF)
+  enableBatching(config?: BatchConfig): this
+  disableBatching(): this
+  queue(point: PointerPoint): this
+  queueAll(points: PointerPoint[]): this
+  flushBatch(): PointerPoint[]
+  isBatchingEnabled: boolean
+  pendingCount: number
 }
 ```
 
@@ -237,6 +302,11 @@ interface PointerPoint extends Point {
 }
 
 type PaddingMode = 'reflect' | 'edge' | 'zero'
+
+interface BatchConfig {
+  onBatch?: (points: PointerPoint[]) => void
+  onPoint?: (point: PointerPoint) => void
+}
 ```
 
 ## Architecture
