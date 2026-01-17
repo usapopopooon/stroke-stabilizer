@@ -1,6 +1,6 @@
 {
   "name": "@stroke-stabilizer/react",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "React hooks for stroke stabilization",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "^0.2.11"
+    "@stroke-stabilizer/core": "^0.2.12"
   },
   "peerDependencies": {
     "react": ">=17.0.0"
