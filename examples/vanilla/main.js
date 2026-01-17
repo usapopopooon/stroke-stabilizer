@@ -14,6 +14,8 @@ let pointer = createStabilizedPointer(50)
 let isDrawing = false
 let rawPoints = []
 let stabilizedPoints = []
+let lastRawPoint = null
+let animationId = null
 
 // Update stabilization level
 levelInput.addEventListener('input', (e) => {
@@ -27,6 +29,7 @@ clearButton.addEventListener('click', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   rawPoints = []
   stabilizedPoints = []
+  lastRawPoint = null
 })
 
 // Drawing functions
@@ -50,6 +53,29 @@ function redraw() {
   drawLine(rawPoints, 'rgba(255, 100, 100, 0.5)', 1)
   // Draw stabilized output (green)
   drawLine(stabilizedPoints, '#4ade80', 2)
+
+  // Draw catch-up line (blue) from last stabilized point to current raw position
+  if (isDrawing && lastRawPoint && stabilizedPoints.length > 0) {
+    const lastStabilized = stabilizedPoints[stabilizedPoints.length - 1]
+    ctx.beginPath()
+    ctx.strokeStyle = '#60a5fa' // blue
+    ctx.lineWidth = 2
+    ctx.lineCap = 'round'
+    ctx.setLineDash([4, 4])
+    ctx.moveTo(lastStabilized.x, lastStabilized.y)
+    ctx.lineTo(lastRawPoint.x, lastRawPoint.y)
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+}
+
+function animationLoop() {
+  if (!isDrawing) {
+    animationId = null
+    return
+  }
+  redraw()
+  animationId = requestAnimationFrame(animationLoop)
 }
 
 // Pointer events
@@ -68,10 +94,16 @@ canvas.addEventListener('pointerdown', (e) => {
     timestamp: e.timeStamp,
   }
 
+  lastRawPoint = point
   rawPoints.push(point)
   const stabilized = pointer.process(point)
   if (stabilized) {
     stabilizedPoints.push(stabilized)
+  }
+
+  // Start animation loop
+  if (!animationId) {
+    animationId = requestAnimationFrame(animationLoop)
   }
 })
 
@@ -85,25 +117,30 @@ canvas.addEventListener('pointermove', (e) => {
     timestamp: e.timeStamp,
   }
 
+  lastRawPoint = point
   rawPoints.push(point)
   const stabilized = pointer.process(point)
   if (stabilized) {
     stabilizedPoints.push(stabilized)
   }
-
-  redraw()
 })
 
 canvas.addEventListener('pointerup', () => {
   if (!isDrawing) return
   isDrawing = false
+  lastRawPoint = null
 
-  // Finish stroke and apply post-processing smoothing
-  const finishedPoints = pointer.finish()
+  // Cancel animation loop
+  if (animationId) {
+    cancelAnimationFrame(animationId)
+    animationId = null
+  }
 
-  if (finishedPoints.length > 2) {
-    stabilizedPoints = smooth(finishedPoints, {
+  // Apply post-processing smoothing
+  if (stabilizedPoints.length > 2) {
+    stabilizedPoints = smooth(stabilizedPoints, {
       kernel: gaussianKernel({ size: 5 }),
+      padding: 'reflect',
     })
     redraw()
   }
@@ -111,4 +148,9 @@ canvas.addEventListener('pointerup', () => {
 
 canvas.addEventListener('pointerleave', () => {
   isDrawing = false
+  lastRawPoint = null
+  if (animationId) {
+    cancelAnimationFrame(animationId)
+    animationId = null
+  }
 })
