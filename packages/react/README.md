@@ -58,6 +58,8 @@ function DrawingCanvas() {
 }
 ```
 
+> **Important:** Always use `getCoalescedEvents()` to capture all pointer events between frames. Without it, browsers throttle events and you'll get choppy strokes.
+
 ### With rAF Batch Processing
 
 For high-frequency input devices, use the underlying `StabilizedPointer`'s batch processing:
@@ -77,12 +79,17 @@ function DrawingCanvas() {
   }, [pointer])
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    pointer.queue({
-      x: e.clientX,
-      y: e.clientY,
-      pressure: e.pressure,
-      timestamp: e.timeStamp,
-    })
+    // IMPORTANT: Use getCoalescedEvents() for smoother input
+    const events = e.nativeEvent.getCoalescedEvents?.() ?? [e.nativeEvent]
+
+    for (const ce of events) {
+      pointer.queue({
+        x: ce.offsetX,
+        y: ce.offsetY,
+        pressure: ce.pressure,
+        timestamp: ce.timeStamp,
+      })
+    }
   }
 
   return <canvas onPointerMove={handlePointerMove} />

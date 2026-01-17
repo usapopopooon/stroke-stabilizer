@@ -57,6 +57,8 @@ function handlePointerUp() {
 </template>
 ```
 
+> **Important:** Always use `getCoalescedEvents()` to capture all pointer events between frames. Without it, browsers throttle events and you'll get choppy strokes.
+
 ### With rAF Batch Processing
 
 For high-frequency input devices, use the underlying `StabilizedPointer`'s batch processing:
@@ -79,12 +81,17 @@ onUnmounted(() => {
 })
 
 function handlePointerMove(e: PointerEvent) {
-  pointer.value.queue({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // IMPORTANT: Use getCoalescedEvents() for smoother input
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    pointer.value.queue({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+  }
 }
 </script>
 

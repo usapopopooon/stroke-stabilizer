@@ -57,6 +57,8 @@ function handlePointerUp() {
 </template>
 ```
 
+> **重要:** `getCoalescedEvents()` を必ず使用してください。これを使わないとブラウザがイベントを間引くため、カクカクした線になります。
+
 ### rAFバッチ処理
 
 ペンタブレットなど高頻度入力向けに、バッチ処理が使えます。
@@ -79,12 +81,17 @@ onUnmounted(() => {
 })
 
 function handlePointerMove(e: PointerEvent) {
-  pointer.value.queue({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // 重要: getCoalescedEvents() で滑らかな入力を取得
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    pointer.value.queue({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+  }
 }
 </script>
 
@@ -133,7 +140,7 @@ const { process, reset } = useStabilizedPointer({
 
 ### useStabilizedPointer(options?)
 
-ポインタインスタンスを作る。
+ポインタインスタンスを作成。
 
 **オプション：**
 
