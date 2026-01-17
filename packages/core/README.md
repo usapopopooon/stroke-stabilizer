@@ -159,10 +159,10 @@ const final = pointer.finish()
 
 **Difference between `applyPostProcess()` and `finish()`:**
 
-| Method             | Post-process | Reset buffer |
-| ------------------ | ------------ | ------------ |
+| Method               | Post-process | Reset buffer |
+| -------------------- | ------------ | ------------ |
 | `applyPostProcess()` | ✅           | ❌           |
-| `finish()`         | ✅           | ✅           |
+| `finish()`           | ✅           | ✅           |
 
 ### Edge-preserving Smoothing
 
@@ -314,11 +314,11 @@ class StabilizedPointer {
   // Post-processing
   addPostProcess(kernel: Kernel, options?: { padding?: PaddingMode }): this
   removePostProcess(type: string): boolean
-  applyPostProcess(): Point[]  // Apply without reset (for preview/re-apply)
+  applyPostProcess(): Point[] // Apply without reset (for preview/re-apply)
 
   // Processing
   process(point: PointerPoint): PointerPoint | null
-  finish(): Point[]  // Apply post-process and reset
+  finish(): Point[] // Apply post-process and reset
   reset(): void
 
   // Batch processing (rAF)

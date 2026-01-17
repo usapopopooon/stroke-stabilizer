@@ -6,11 +6,11 @@
 
 ## パッケージ
 
-| パッケージ                                      | バージョン                                                                                                                          | 説明                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| [@stroke-stabilizer/core](./packages/core)      | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core)           | コアライブラリ（vanilla JS） |
-| [@stroke-stabilizer/react](./packages/react)    | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react)         | React hooks            |
-| [@stroke-stabilizer/vue](./packages/vue)        | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)             | Vue composables        |
+| パッケージ                                   | バージョン                                                                                                                  | 説明                         |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| [@stroke-stabilizer/core](./packages/core)   | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core)   | コアライブラリ（vanilla JS） |
+| [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks                  |
+| [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables              |
 
 ## 特徴
 

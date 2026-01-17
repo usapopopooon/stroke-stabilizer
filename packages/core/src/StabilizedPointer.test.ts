@@ -610,8 +610,14 @@ describe('StabilizedPointer', () => {
         vi.runAllTimers()
 
         expect(onPoint).toHaveBeenCalledTimes(2)
-        expect(onPoint).toHaveBeenNthCalledWith(1, expect.objectContaining({ x: 10, y: 20 }))
-        expect(onPoint).toHaveBeenNthCalledWith(2, expect.objectContaining({ x: 30, y: 40 }))
+        expect(onPoint).toHaveBeenNthCalledWith(
+          1,
+          expect.objectContaining({ x: 10, y: 20 })
+        )
+        expect(onPoint).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({ x: 30, y: 40 })
+        )
       })
 
       it('should call onBatch with all processed points', () => {
@@ -641,7 +647,9 @@ describe('StabilizedPointer', () => {
         vi.runAllTimers()
 
         expect(onPoint).toHaveBeenCalledTimes(1)
-        expect(onBatch).toHaveBeenCalledWith([expect.objectContaining({ x: 0, y: 0 })])
+        expect(onBatch).toHaveBeenCalledWith([
+          expect.objectContaining({ x: 0, y: 0 }),
+        ])
       })
 
       it('should not call onBatch when all points are rejected', () => {
@@ -686,9 +694,7 @@ describe('StabilizedPointer', () => {
       })
 
       it('should apply post processors after flushing batch', () => {
-        pointer
-          .addPostProcess(boxKernel({ size: 3 }))
-          .enableBatching()
+        pointer.addPostProcess(boxKernel({ size: 3 })).enableBatching()
 
         pointer.queue(createPoint(0, 0, 0))
         pointer.queue(createPoint(10, 100, 100)) // Spike

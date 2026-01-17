@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### @stroke-stabilizer/core
+
 - `applyPostProcess()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
 
 #### Documentation
+
 - Japanese README documentation for all packages
   - `docs/README.ja.md` (root)
   - `packages/core/docs/README.ja.md`
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### @stroke-stabilizer/core
+
 - **rAF Batch Processing** - requestAnimationFrame-based batching for high-frequency pointer events
   - `enableBatching(config)` - Enable batch processing with optional callbacks
   - `disableBatching()` - Disable batch processing (flushes pending points)
@@ -62,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### @stroke-stabilizer/core
+
 - **Dynamic Pipeline Pattern** - Flexible real-time filter chain architecture
 - **StabilizedPointer** - Main class for managing filter pipelines
 - **7 Built-in Filters:**
@@ -82,14 +86,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full TypeScript support with comprehensive type definitions
 
 #### @stroke-stabilizer/react
+
 - `useStabilizedPointer` - React hook for stroke stabilization
 - `useStabilizationLevel` - React hook for managing stabilization level state
 
 #### @stroke-stabilizer/vue
+
 - `useStabilizedPointer` - Vue composable for stroke stabilization
 - `useStabilizationLevel` - Vue composable for managing stabilization level state
 
 ### Infrastructure
+
 - pnpm monorepo with workspace support
 - Vite build system with dual CJS/ESM output
 - Vitest test framework (105 tests)
