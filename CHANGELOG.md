@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2026-01-17
+
+### Changed
+
+- Version bump for npm registry compatibility (same as 0.1.6)
+
 ## [0.1.6] - 2026-01-17
 
 ### Added
@@ -96,6 +102,7 @@ Initial release.
 - ESLint + Prettier + cspell configuration
 - TypeScript strict mode
 
+[0.2.9]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.9
 [0.1.6]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.6
 [0.1.5]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.5
 [0.1.4]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.4
