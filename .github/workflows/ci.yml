@@ -3,18 +3,12 @@ name: CI
 on:
   push:
     branches: [main, 'release/**']
-  pull_request:
-    branches: [main]
 
 jobs:
   ci:
-    strategy:
-      matrix:
-        node-version: [18, 20, 22]
-
     runs-on: ubuntu-latest
     container:
-      image: node:${{ matrix.node-version }}-slim
+      image: node:22-slim
 
     steps:
       - name: Checkout
