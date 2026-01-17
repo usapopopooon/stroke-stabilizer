@@ -21,6 +21,18 @@ export interface BatchConfig {
 }
 
 /**
+ * StabilizedPointer configuration options
+ */
+export interface StabilizedPointerOptions {
+  /**
+   * Whether to append the raw endpoint when finishing a stroke.
+   * This ensures the stabilized stroke ends at the actual input point.
+   * @default true
+   */
+  appendEndpoint?: boolean
+}
+
+/**
  * Dynamic Pipeline Pattern implementation
  *
  * A pipeline that allows adding, removing, and updating filters at runtime.
@@ -48,10 +60,23 @@ export class StabilizedPointer {
   private buffer: PointerPoint[] = []
   private lastRawPoint: PointerPoint | null = null
 
+  // Configuration options
+  private options: Required<StabilizedPointerOptions>
+
   // Batch processing fields
   private batchConfig: BatchConfig | null = null
   private pendingPoints: PointerPoint[] = []
   private rafId: number | null = null
+
+  /**
+   * Create a new StabilizedPointer
+   * @param options Configuration options
+   */
+  constructor(options: StabilizedPointerOptions = {}) {
+    this.options = {
+      appendEndpoint: options.appendEndpoint ?? true,
+    }
+  }
 
   /**
    * Add a filter to the pipeline
@@ -308,6 +333,10 @@ export class StabilizedPointer {
    * with bidirectional convolution will naturally smooth the transition.
    */
   private appendEndpoint(): void {
+    // Skip if disabled via options
+    if (!this.options.appendEndpoint) {
+      return
+    }
     // Avoid duplicate appending (finishWithoutReset may be called multiple times)
     if (this.hasDrained) {
       return

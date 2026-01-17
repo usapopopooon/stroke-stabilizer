@@ -12,6 +12,18 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 | [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks               |
 | [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables           |
 
+## Live Demo
+
+Try the interactive demos: **[usapopopooon.github.io/stroke-stabilizer](https://usapopopooon.github.io/stroke-stabilizer/)**
+
+## Examples
+
+Interactive demos with dynamic filter controls:
+
+- [Vanilla JS](./examples/vanilla/) - Pure JavaScript implementation
+- [React](./examples/react/) - React hooks example
+- [Vue](./examples/vue/) - Vue composables example
+
 ## Documentation
 
 - **[Filter Reference](./docs/filters.md)** - Detailed explanation of all filters and kernels with mathematical formulas
@@ -20,6 +32,7 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime
 - **Two-layer Processing** - Real-time filters + post-processing convolution
+- **Automatic Endpoint Correction** - Strokes end at the actual input point
 - **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter
 - **Edge-preserving Smoothing** - Bilateral kernel for sharp corner preservation

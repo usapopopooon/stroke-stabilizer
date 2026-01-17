@@ -14,6 +14,7 @@ Reduce hand tremor and smooth pen/mouse input in real-time using a flexible filt
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime without rebuilding
 - **Two-layer Processing** - Real-time filters + post-processing convolution
+- **Automatic Endpoint Correction** - Strokes end at the actual input point
 - **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter
 - **Edge-preserving Smoothing** - Bilateral kernel for sharp corner preservation
@@ -178,7 +179,29 @@ const smoothed = smooth(points, {
 })
 ```
 
-### Endpoint Preservation
+### Automatic Endpoint Correction
+
+By default, `finish()` automatically appends the raw endpoint to ensure the stroke ends at the actual input position. This can be disabled via options.
+
+```ts
+import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
+
+// Default: endpoint correction enabled (recommended)
+const pointer = new StabilizedPointer()
+pointer.addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+
+// Process points...
+pointer.process(point1)
+pointer.process(point2)
+
+// finish() appends the last raw point automatically
+const finalPoints = pointer.finish()
+
+// Disable endpoint correction
+const pointerNoEndpoint = new StabilizedPointer({ appendEndpoint: false })
+```
+
+### Endpoint Preservation in smooth()
 
 By default, `smooth()` preserves exact start and end points so the stroke reaches the actual pointer position.
 
@@ -326,6 +349,9 @@ bilateralKernel({
 
 ```ts
 class StabilizedPointer {
+  // Constructor
+  constructor(options?: StabilizedPointerOptions)
+
   // Filter management
   addFilter(filter: Filter): this
   removeFilter(type: string): boolean
@@ -371,6 +397,10 @@ type PaddingMode = 'reflect' | 'edge' | 'zero'
 interface BatchConfig {
   onBatch?: (points: PointerPoint[]) => void
   onPoint?: (point: PointerPoint) => void
+}
+
+interface StabilizedPointerOptions {
+  appendEndpoint?: boolean // Append raw endpoint on finish() (default: true)
 }
 ```
 

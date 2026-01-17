@@ -1,0 +1,135 @@
+name: Deploy Examples to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:22-slim
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build core library
+        run: pnpm --filter @stroke-stabilizer/core build
+
+      - name: Build vanilla example
+        run: pnpm --filter stroke-stabilizer-vanilla-example build
+
+      - name: Build react example
+        run: pnpm --filter stroke-stabilizer-react-example build
+
+      - name: Build vue example
+        run: pnpm --filter stroke-stabilizer-vue-example build
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p _site
+          cp -r examples/vanilla/dist _site/vanilla
+          cp -r examples/react/dist _site/react
+          cp -r examples/vue/dist _site/vue
+
+      - name: Create index page
+        run: |
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Stroke Stabilizer Examples</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                font-family: system-ui, sans-serif;
+                background: #1a1a2e;
+                color: #eee;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+              }
+              h1 { margin-bottom: 30px; font-size: 2rem; }
+              .examples {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+              }
+              a {
+                display: block;
+                padding: 20px 40px;
+                background: #2a2a4a;
+                color: #4ade80;
+                text-decoration: none;
+                border-radius: 8px;
+                font-size: 1.2rem;
+                transition: background 0.2s;
+              }
+              a:hover { background: #3a3a5a; }
+              .github {
+                margin-top: 40px;
+                color: #888;
+                font-size: 0.9rem;
+              }
+              .github a {
+                display: inline;
+                padding: 0;
+                background: none;
+                color: #60a5fa;
+              }
+              .github a:hover { text-decoration: underline; background: none; }
+            </style>
+          </head>
+          <body>
+            <h1>Stroke Stabilizer Examples</h1>
+            <div class="examples">
+              <a href="./vanilla/">Vanilla JS</a>
+              <a href="./react/">React</a>
+              <a href="./vue/">Vue</a>
+            </div>
+            <p class="github">
+              <a href="https://github.com/usapopopooon/stroke-stabilizer">View on GitHub</a>
+            </p>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

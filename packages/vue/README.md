@@ -39,7 +39,9 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function handlePointerUp() {
-  reset()
+  // Get final smoothed points with post-processing
+  const finalPoints = pointer.value.finish()
+  drawFinalStroke(finalPoints)
 }
 </script>
 
@@ -137,6 +139,7 @@ Creates a stabilized pointer instance.
 - `process(point)` - Process a single point
 - `processAll(points)` - Process multiple points
 - `flushBuffer()` - Flush internal buffer
+- `finish()` - Apply post-processing and return final points (auto-appends endpoint)
 - `reset()` - Reset the pointer state
 - `addFilter(filter)` - Add a filter dynamically
 - `removeFilter(type)` - Remove a filter by type

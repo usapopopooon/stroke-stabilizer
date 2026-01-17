@@ -3,43 +3,76 @@ import {
   noiseFilter,
   kalmanFilter,
   stringFilter,
-  smooth,
   gaussianKernel,
 } from '@stroke-stabilizer/core'
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
-const levelInput = document.getElementById('level')
-const levelValue = document.getElementById('levelValue')
 const clearButton = document.getElementById('clear')
 
-// Create custom pointer with filters
-function createPointer(level) {
+// Filter checkboxes
+const filterNoiseCheckbox = document.getElementById('filterNoise')
+const filterKalmanCheckbox = document.getElementById('filterKalman')
+const filterStringCheckbox = document.getElementById('filterString')
+const filterPostProcessCheckbox = document.getElementById('filterPostProcess')
+
+// Filter strength sliders
+const noiseStrengthInput = document.getElementById('noiseStrength')
+const kalmanStrengthInput = document.getElementById('kalmanStrength')
+const stringStrengthInput = document.getElementById('stringStrength')
+const postProcessStrengthInput = document.getElementById('postProcessStrength')
+
+// Filter value displays
+const noiseValueDisplay = document.getElementById('noiseValue')
+const kalmanValueDisplay = document.getElementById('kalmanValue')
+const stringValueDisplay = document.getElementById('stringValue')
+const postProcessValueDisplay = document.getElementById('postProcessValue')
+
+// Filter state
+const filterState = {
+  noise: { enabled: true, minDistance: 2.0 },
+  kalman: { enabled: true, strength: 20 },
+  string: { enabled: true, stringLength: 15 },
+  postProcess: { enabled: true, size: 1 },
+}
+
+// Create pointer with current filter settings
+function createPointer() {
   const pointer = new StabilizedPointer()
-  if (level === 0) return pointer
 
-  const t = Math.min(level / 50, 1.0)
+  if (filterState.noise.enabled) {
+    pointer.addFilter(
+      noiseFilter({ minDistance: filterState.noise.minDistance })
+    )
+  }
 
-  // Noise filter
-  pointer.addFilter(noiseFilter({ minDistance: 1.0 + t * 2.0 }))
-
-  if (level >= 21) {
-    // Kalman filter (very light)
+  if (filterState.kalman.enabled) {
+    // strength 0-100 maps to processNoise 1.0-0.1, measurementNoise 0.05-1.0
+    const t = filterState.kalman.strength / 100
     pointer.addFilter(
       kalmanFilter({
-        processNoise: 1.0 - t * 0.3,
-        measurementNoise: 0.1 + t * 0.15,
+        processNoise: 1.0 - t * 0.9,
+        measurementNoise: 0.05 + t * 0.95,
       })
     )
+  }
 
-    // String filter
-    pointer.addFilter(stringFilter({ stringLength: Math.round(5 + t * 15) }))
+  if (filterState.string.enabled) {
+    pointer.addFilter(
+      stringFilter({ stringLength: filterState.string.stringLength })
+    )
+  }
+
+  if (filterState.postProcess.enabled) {
+    pointer.addPostProcess(
+      gaussianKernel({ size: filterState.postProcess.size })
+    )
   }
 
   return pointer
 }
 
-let pointer = createPointer(50)
+let pointer = createPointer()
 let isDrawing = false
 let rawPoints = []
 let stabilizedPoints = []
@@ -49,11 +82,50 @@ let animationId = null
 // Store completed strokes
 let completedStrokes = []
 
-// Update stabilization level
-levelInput.addEventListener('input', (e) => {
-  const level = parseInt(e.target.value)
-  levelValue.textContent = level
-  pointer = createPointer(level)
+// Filter checkbox event listeners
+filterNoiseCheckbox.addEventListener('change', (e) => {
+  filterState.noise.enabled = e.target.checked
+  pointer = createPointer()
+})
+
+filterKalmanCheckbox.addEventListener('change', (e) => {
+  filterState.kalman.enabled = e.target.checked
+  pointer = createPointer()
+})
+
+filterStringCheckbox.addEventListener('change', (e) => {
+  filterState.string.enabled = e.target.checked
+  pointer = createPointer()
+})
+
+filterPostProcessCheckbox.addEventListener('change', (e) => {
+  filterState.postProcess.enabled = e.target.checked
+  pointer = createPointer()
+})
+
+// Filter strength slider event listeners
+noiseStrengthInput.addEventListener('input', (e) => {
+  filterState.noise.minDistance = parseFloat(e.target.value)
+  noiseValueDisplay.textContent = e.target.value
+  pointer = createPointer()
+})
+
+kalmanStrengthInput.addEventListener('input', (e) => {
+  filterState.kalman.strength = parseInt(e.target.value)
+  kalmanValueDisplay.textContent = e.target.value
+  pointer = createPointer()
+})
+
+stringStrengthInput.addEventListener('input', (e) => {
+  filterState.string.stringLength = parseInt(e.target.value)
+  stringValueDisplay.textContent = e.target.value
+  pointer = createPointer()
+})
+
+postProcessStrengthInput.addEventListener('input', (e) => {
+  filterState.postProcess.size = parseInt(e.target.value)
+  postProcessValueDisplay.textContent = e.target.value
+  pointer = createPointer()
 })
 
 // Clear canvas
@@ -176,38 +248,16 @@ canvas.addEventListener('pointerup', () => {
     animationId = null
   }
 
-  // Append endpoint to ensure stroke ends at actual input point
-  if (lastRawPoint && stabilizedPoints.length > 0) {
-    const lastStabilized = stabilizedPoints[stabilizedPoints.length - 1]
-    const dx = lastRawPoint.x - lastStabilized.x
-    const dy = lastRawPoint.y - lastStabilized.y
-    const distance = Math.sqrt(dx * dx + dy * dy)
-
-    if (distance >= 1) {
-      stabilizedPoints.push({
-        x: lastRawPoint.x,
-        y: lastRawPoint.y,
-        pressure: lastRawPoint.pressure ?? 1,
-        timestamp: lastRawPoint.timestamp + 8,
-      })
-    }
-  }
+  // Finish stroke (automatically appends endpoint and applies post-processing)
+  const smoothedPoints = pointer.finish()
 
   lastRawPoint = null
-
-  // Apply light post-processing to round corners
-  let smoothedPoints = stabilizedPoints
-  if (stabilizedPoints.length > 2) {
-    smoothedPoints = smooth(stabilizedPoints, {
-      kernel: gaussianKernel({ size: 3 }),
-    })
-  }
 
   // Save completed stroke
   if (rawPoints.length > 0 || smoothedPoints.length > 0) {
     completedStrokes.push({
       raw: [...rawPoints],
-      stabilized: [...smoothedPoints],
+      stabilized: smoothedPoints,
     })
   }
 

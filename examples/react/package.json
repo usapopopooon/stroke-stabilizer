@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "^0.1.3",
-    "@stroke-stabilizer/react": "^0.1.3",
+    "@stroke-stabilizer/core": "workspace:*",
+    "@stroke-stabilizer/react": "workspace:*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },

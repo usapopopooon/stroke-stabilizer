@@ -14,6 +14,7 @@
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - ビルド不要で実行時にフィルターを追加・削除・更新
 - **二層処理** - リアルタイムフィルター + ポストプロセス畳み込み
+- **自動終点補正** - ストロークが実際の入力位置で終わる
 - **rAF バッチ処理** - 高頻度ポインターイベントをアニメーションフレームに集約
 - **8種類の組み込みフィルター** - 単純移動平均から適応型 One Euro Filter まで
 - **エッジ保存スムージング** - バイラテラルカーネルによる鋭角保持
@@ -178,7 +179,29 @@ const smoothed = smooth(points, {
 })
 ```
 
-### 終点の保存
+### 自動終点補正
+
+デフォルトでは、`finish()` は自動的に生の終点を追加し、ストロークが実際の入力位置で終わるようにします。オプションで無効化できます。
+
+```ts
+import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
+
+// デフォルト：終点補正有効（推奨）
+const pointer = new StabilizedPointer()
+pointer.addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+
+// 点を処理...
+pointer.process(point1)
+pointer.process(point2)
+
+// finish() は最後の生の点を自動的に追加
+const finalPoints = pointer.finish()
+
+// 終点補正を無効化
+const pointerNoEndpoint = new StabilizedPointer({ appendEndpoint: false })
+```
+
+### smooth() での終点保存
 
 デフォルトでは、`smooth()` は正確な始点と終点を保存し、ストロークが実際のポインタ位置に到達するようにします。
 
@@ -326,6 +349,9 @@ bilateralKernel({
 
 ```ts
 class StabilizedPointer {
+  // コンストラクタ
+  constructor(options?: StabilizedPointerOptions)
+
   // フィルター管理
   addFilter(filter: Filter): this
   removeFilter(type: string): boolean
@@ -371,6 +397,10 @@ type PaddingMode = 'reflect' | 'edge' | 'zero'
 interface BatchConfig {
   onBatch?: (points: PointerPoint[]) => void
   onPoint?: (point: PointerPoint) => void
+}
+
+interface StabilizedPointerOptions {
+  appendEndpoint?: boolean // finish() 時に生の終点を追加（デフォルト: true）
 }
 ```
 

@@ -40,7 +40,9 @@ function DrawingCanvas() {
   }
 
   const handlePointerUp = () => {
-    reset()
+    // Get final smoothed points with post-processing
+    const finalPoints = pointer.finish()
+    drawFinalStroke(finalPoints)
   }
 
   return (
@@ -125,6 +127,7 @@ Creates a stabilized pointer instance.
 - `process(point)` - Process a single point
 - `processAll(points)` - Process multiple points
 - `flushBuffer()` - Flush internal buffer
+- `finish()` - Apply post-processing and return final points (auto-appends endpoint)
 - `reset()` - Reset the pointer state
 - `addFilter(filter)` - Add a filter dynamically
 - `removeFilter(type)` - Remove a filter by type

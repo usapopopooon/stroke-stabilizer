@@ -39,7 +39,9 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function handlePointerUp() {
-  reset()
+  // ポストプロセス適用済みの最終ポイントを取得
+  const finalPoints = pointer.value.finish()
+  drawFinalStroke(finalPoints)
 }
 </script>
 
@@ -137,6 +139,7 @@ const { process, reset } = useStabilizedPointer({
 - `process(point)` - 単一の点を処理
 - `processAll(points)` - 複数の点を処理
 - `flushBuffer()` - 内部バッファをフラッシュ
+- `finish()` - ポストプロセスを適用して最終ポイントを返す（終点を自動追加）
 - `reset()` - ポインター状態をリセット
 - `addFilter(filter)` - フィルターを動的に追加
 - `removeFilter(type)` - タイプでフィルターを削除

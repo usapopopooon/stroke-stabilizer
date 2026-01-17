@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-01-17
+
+### Added
+
+- `StabilizedPointerOptions` with `appendEndpoint` option for automatic endpoint correction
+- Interactive examples with dynamic filter controls (checkboxes and sliders)
+- GitHub Pages deployment for live demos
+- Live demo links in documentation
+
+### Changed
+
+- Examples now use `workspace:*` for local package references
+- Updated documentation with `finish()` method usage and `StabilizedPointerOptions`
+
 ## [0.1.5] - 2026-01-17
 
 ### Changed
@@ -82,6 +96,7 @@ Initial release.
 - ESLint + Prettier + cspell configuration
 - TypeScript strict mode
 
+[0.1.6]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.6
 [0.1.5]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.5
 [0.1.4]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.4
 [0.1.3]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.3

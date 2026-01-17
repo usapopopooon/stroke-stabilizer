@@ -12,6 +12,18 @@
 | [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks                  |
 | [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables              |
 
+## ライブデモ
+
+インタラクティブデモを試す: **[usapopopooon.github.io/stroke-stabilizer](https://usapopopooon.github.io/stroke-stabilizer/)**
+
+## サンプル
+
+動的フィルタコントロール付きのインタラクティブデモ：
+
+- [Vanilla JS](../examples/vanilla/) - Pure JavaScript 実装
+- [React](../examples/react/) - React hooks サンプル
+- [Vue](../examples/vue/) - Vue composables サンプル
+
 ## ドキュメント
 
 - **[フィルターリファレンス](./filters.ja.md)** - すべてのフィルターとカーネルの詳細な説明（数式付き）
@@ -20,6 +32,7 @@
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - ビルド不要で実行時にフィルターを追加・削除・更新
 - **二層処理** - リアルタイムフィルター + ポストプロセス畳み込み
+- **自動終点補正** - ストロークが実際の入力位置で終わる
 - **rAF バッチ処理** - 高頻度ポインターイベントをアニメーションフレームに集約
 - **8種類の組み込みフィルター** - 単純移動平均から適応型 One Euro Filter まで
 - **エッジ保存スムージング** - バイラテラルカーネルによる鋭角保持
