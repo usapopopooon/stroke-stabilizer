@@ -128,13 +128,31 @@ canvas.addEventListener('pointermove', (e) => {
 canvas.addEventListener('pointerup', () => {
   if (!isDrawing) return
   isDrawing = false
-  lastRawPoint = null
 
   // Cancel animation loop
   if (animationId) {
     cancelAnimationFrame(animationId)
     animationId = null
   }
+
+  // Append endpoint to ensure stroke ends at actual input point
+  if (lastRawPoint && stabilizedPoints.length > 0) {
+    const lastStabilized = stabilizedPoints[stabilizedPoints.length - 1]
+    const dx = lastRawPoint.x - lastStabilized.x
+    const dy = lastRawPoint.y - lastStabilized.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    if (distance >= 1) {
+      stabilizedPoints.push({
+        x: lastRawPoint.x,
+        y: lastRawPoint.y,
+        pressure: lastRawPoint.pressure ?? 1,
+        timestamp: lastRawPoint.timestamp + 8,
+      })
+    }
+  }
+
+  lastRawPoint = null
 
   // Apply post-processing smoothing
   if (stabilizedPoints.length > 2) {
