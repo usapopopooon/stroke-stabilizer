@@ -32,8 +32,8 @@ export function createStabilizedPointer(level: number): StabilizedPointer {
     return pointer
   }
 
-  // Scale: level 4 = max effect (t=1.0), level 100 = same as level 4
-  const t = Math.min(clampedLevel / 4, 1.0)
+  // Scale: level 2 = max effect (t=1.0), level 100 = same as level 2
+  const t = Math.min(clampedLevel / 2, 1.0)
 
   // Level 1-100: Noise filter
   const minDistance = 1.0 + t * 2.0 // 1.0-3.0
