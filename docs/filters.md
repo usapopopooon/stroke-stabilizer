@@ -239,7 +239,7 @@ The examples use a 0-100 strength value converted as follows:
 
 ```ts
 const t = strength / 100
-processNoise: 1.0 - t * 0.9      // 1.0 → 0.1
+processNoise: 1.0 - t * 0.9 // 1.0 → 0.1
 measurementNoise: 0.05 + t * 0.95 // 0.05 → 1.0
 ```
 

@@ -66,15 +66,15 @@ canvas.addEventListener('pointerup', () => {
 
 ### リアルタイムフィルタ
 
-| フィルタ                 | 説明                       | 用途                           |
-| ------------------------ | -------------------------- | ------------------------------ |
-| `noiseFilter`            | 近い点を無視               | ジッター除去                   |
-| `movingAverageFilter`    | 単純移動平均（FIR）        | 基本的なスムージング           |
-| `emaFilter`              | 指数移動平均（IIR）        | 低遅延スムージング             |
-| `kalmanFilter`           | カルマンフィルタ           | ノイズの多い入力向け           |
-| `stringFilter`           | Lazy Brush                 | 遅延のある滑らかなストローク   |
-| `oneEuroFilter`          | 速度適応型ローパス         | 滑らかさと遅延のバランス       |
-| `linearPredictionFilter` | 次の位置を予測             | ラグ補正                       |
+| フィルタ                 | 説明                | 用途                         |
+| ------------------------ | ------------------- | ---------------------------- |
+| `noiseFilter`            | 近い点を無視        | ジッター除去                 |
+| `movingAverageFilter`    | 単純移動平均（FIR） | 基本的なスムージング         |
+| `emaFilter`              | 指数移動平均（IIR） | 低遅延スムージング           |
+| `kalmanFilter`           | カルマンフィルタ    | ノイズの多い入力向け         |
+| `stringFilter`           | Lazy Brush          | 遅延のある滑らかなストローク |
+| `oneEuroFilter`          | 速度適応型ローパス  | 滑らかさと遅延のバランス     |
+| `linearPredictionFilter` | 次の位置を予測      | ラグ補正                     |
 
 ### 後処理カーネル
 
@@ -282,9 +282,9 @@ pointer.pendingCount // キュー内の点の数
 import { createFromPreset } from '@stroke-stabilizer/core'
 
 // 用意された設定で簡単セットアップ
-const pointer = createFromPreset('smooth')     // 強めのスムージング
+const pointer = createFromPreset('smooth') // 強めのスムージング
 const pointer = createFromPreset('responsive') // 低遅延
-const pointer = createFromPreset('balanced')   // バランス型
+const pointer = createFromPreset('balanced') // バランス型
 ```
 
 ## フィルタパラメータ
@@ -294,8 +294,8 @@ const pointer = createFromPreset('balanced')   // バランス型
 ```ts
 oneEuroFilter({
   minCutoff: 1.0, // 低速時のスムージング（小さいほど滑らか）
-  beta: 0.007,    // 速度適応（大きいほど応答性アップ）
-  dCutoff: 1.0,   // 微分カットオフ（普通は1.0）
+  beta: 0.007, // 速度適応（大きいほど応答性アップ）
+  dCutoff: 1.0, // 微分カットオフ（普通は1.0）
 })
 ```
 
@@ -311,7 +311,7 @@ emaFilter({
 
 ```ts
 kalmanFilter({
-  processNoise: 0.1,     // 動きの予測分散
+  processNoise: 0.1, // 動きの予測分散
   measurementNoise: 0.5, // 入力ノイズ
 })
 ```
@@ -320,9 +320,9 @@ kalmanFilter({
 
 ```ts
 linearPredictionFilter({
-  historySize: 4,       // 予測に使用する点数
+  historySize: 4, // 予測に使用する点数
   predictionFactor: 0.5, // 予測の強さ（0-1）
-  smoothing: 0.6,       // 出力のスムージング
+  smoothing: 0.6, // 出力のスムージング
 })
 ```
 
@@ -338,9 +338,9 @@ stringFilter({
 
 ```ts
 bilateralKernel({
-  size: 7,         // カーネルサイズ（奇数）
-  sigmaValue: 10,  // エッジ保存（小さいほど角が残る）
-  sigmaSpace: 2,   // 空間フォールオフ（オプション）
+  size: 7, // カーネルサイズ（奇数）
+  sigmaValue: 10, // エッジ保存（小さいほど角が残る）
+  sigmaSpace: 2, // 空間フォールオフ（オプション）
 })
 ```
 
@@ -365,9 +365,9 @@ class StabilizedPointer {
 
   // 処理
   process(point: PointerPoint): PointerPoint | null
-  finish(): Point[]              // 後処理してリセット
-  finishWithoutReset(): Point[]  // リセットなしで後処理（プレビュー用）
-  reset(): void                  // フィルタリセット、バッファクリア
+  finish(): Point[] // 後処理してリセット
+  finishWithoutReset(): Point[] // リセットなしで後処理（プレビュー用）
+  reset(): void // フィルタリセット、バッファクリア
 
   // バッチ処理（rAF）
   enableBatching(config?: BatchConfig): this

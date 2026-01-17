@@ -239,7 +239,7 @@ exampleでは0〜100のstrength値を以下の式で変換しています：
 
 ```ts
 const t = strength / 100
-processNoise: 1.0 - t * 0.9      // 1.0 → 0.1
+processNoise: 1.0 - t * 0.9 // 1.0 → 0.1
 measurementNoise: 0.05 + t * 0.95 // 0.05 → 1.0
 ```
 
