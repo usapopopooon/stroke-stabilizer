@@ -4,9 +4,9 @@
 
 [English](../README.md)
 
-> これは [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) モノレポの一部です
+> [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) モノレポの一部
 
-デジタルドローイングアプリケーション向けのストローク手ぶれ補正用 React hooks です。
+お絵描きアプリ向けのReact用の手ぶれ補正ライブラリです。
 
 ## インストール
 
@@ -14,7 +14,7 @@
 npm install @stroke-stabilizer/react @stroke-stabilizer/core
 ```
 
-## 使用方法
+## 使い方
 
 ### useStabilizedPointer
 
@@ -40,7 +40,7 @@ function DrawingCanvas() {
   }
 
   const handlePointerUp = () => {
-    // ポストプロセス適用済みの最終ポイントを取得
+    // 後処理済みの最終ポイントを取得
     const finalPoints = pointer.finish()
     drawFinalStroke(finalPoints)
   }
@@ -51,9 +51,9 @@ function DrawingCanvas() {
 }
 ```
 
-### rAF バッチ処理
+### rAFバッチ処理
 
-高頻度入力デバイス向けに、`StabilizedPointer` のバッチ処理を使用できます：
+ペンタブレットなど高頻度入力向けに、バッチ処理が使えます。
 
 ```tsx
 import { useStabilizedPointer } from '@stroke-stabilizer/react'
@@ -84,7 +84,7 @@ function DrawingCanvas() {
 
 ### useStabilizationLevel
 
-安定化レベルの状態管理用フックです。
+補正レベルの状態管理用。
 
 ```tsx
 import { useStabilizationLevel } from '@stroke-stabilizer/react'
@@ -104,7 +104,7 @@ function StabilizationSlider() {
         onChange={(e) => setLevel(Number(e.target.value))}
       />
       <span>{level}%</span>
-      {isEnabled && <span>手ぶれ補正有効</span>}
+      {isEnabled && <span>手ぶれ補正ON</span>}
     </div>
   )
 }
@@ -114,44 +114,44 @@ function StabilizationSlider() {
 
 ### useStabilizedPointer(options?)
 
-安定化ポインターインスタンスを作成します。
+ポインタインスタンスを作る。
 
 **オプション：**
 
-- `level` - 安定化レベル（0-100）。指定時はプリセットを使用
-- `filters` - カスタムフィルター配列。level 未指定時に使用
+- `level` - 補正レベル（0-100）。指定するとプリセットを使用
+- `filters` - カスタムフィルタ配列。levelがない場合に使用
 - `onPoint` - 点が処理されたときのコールバック
 
 **戻り値：**
 
-- `process(point)` - 単一の点を処理
-- `processAll(points)` - 複数の点を処理
+- `process(point)` - 1点を処理
+- `processAll(points)` - 複数点を処理
 - `flushBuffer()` - 内部バッファをフラッシュ
-- `finish()` - ポストプロセスを適用して最終ポイントを返す（終点を自動追加）
-- `reset()` - ポインター状態をリセット
-- `addFilter(filter)` - フィルターを動的に追加
-- `removeFilter(type)` - タイプでフィルターを削除
-- `updateFilter(type, params)` - フィルターパラメータを更新
-- `pointer` - StabilizedPointer インスタンスへの参照
+- `finish()` - 後処理して最終ポイントを返す（終点も自動追加）
+- `reset()` - ポインタをリセット
+- `addFilter(filter)` - フィルタを追加
+- `removeFilter(type)` - フィルタを削除
+- `updateFilter(type, params)` - フィルタのパラメータを更新
+- `pointer` - StabilizedPointerインスタンス
 
 ### useStabilizationLevel(options?)
 
-安定化レベルの状態を管理します。
+補正レベルの状態管理。
 
 **オプション：**
 
-- `initialLevel` - 初期レベル（デフォルト: 0）
-- `min` - 最小レベル（デフォルト: 0）
-- `max` - 最大レベル（デフォルト: 100）
-- `onChange` - レベル変更時のコールバック
+- `initialLevel` - 初期値（デフォルト: 0）
+- `min` - 最小値（デフォルト: 0）
+- `max` - 最大値（デフォルト: 100）
+- `onChange` - 変更時のコールバック
 
 **戻り値：**
 
 - `level` - 現在のレベル
 - `setLevel(value)` - レベルを設定
-- `increase(amount?)` - レベルを増加（デフォルト: 10）
-- `decrease(amount?)` - レベルを減少（デフォルト: 10）
-- `isEnabled` - 安定化が有効かどうか（level > 0）
+- `increase(amount?)` - 増やす（デフォルト: 10）
+- `decrease(amount?)` - 減らす（デフォルト: 10）
+- `isEnabled` - 有効かどうか（level > 0）
 
 ## ライセンス
 
