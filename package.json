@@ -4,7 +4,8 @@
   "version": "0.3.0",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
