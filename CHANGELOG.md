@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.14] - 2026-01-18
+
+### Changed
+
+- Add getCoalescedEvents() documentation to React and Vue package READMEs
+
 ## [0.2.13] - 2026-01-18
 
 ### Changed
 
 - Add getCoalescedEvents() support to all examples for smoother stroke input
-- Add getCoalescedEvents() documentation section to all READMEs
+- Add getCoalescedEvents() documentation section to core READMEs
 
 ## [0.2.12] - 2026-01-17
 
@@ -132,6 +138,7 @@ Initial release.
 - ESLint + Prettier + cspell configuration
 - TypeScript strict mode
 
+[0.2.14]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.14
 [0.2.13]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.13
 [0.2.12]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.12
 [0.2.11]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.11
