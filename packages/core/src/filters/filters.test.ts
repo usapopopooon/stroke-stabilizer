@@ -109,6 +109,46 @@ describe('KalmanFilter', () => {
     const filter = kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
     expect(filter.type).toBe('kalman')
   })
+
+  it('should not produce wild values on rapid zigzag input', () => {
+    // This test ensures the velocity clamping prevents runaway values
+    // when direction changes rapidly with high-frequency events
+    const filter = kalmanFilter({ processNoise: 0.08, measurementNoise: 0.7 })
+
+    const results: PointerPoint[] = []
+    // Rapid zigzag with 1ms intervals (simulates high-frequency pointer events)
+    for (let i = 0; i < 20; i++) {
+      const x = 300 + (i % 2 === 0 ? -100 : 100) // Extreme left-right
+      const y = 200
+      const result = filter.process({ x, y, timestamp: i })
+      if (result) results.push(result)
+    }
+
+    // All output points should be within reasonable bounds
+    // Input range is 200-400, output should not go beyond that
+    for (const point of results) {
+      expect(point.x).toBeGreaterThan(100) // Not flying off to the left
+      expect(point.x).toBeLessThan(500) // Not flying off to the right
+      expect(Number.isFinite(point.x)).toBe(true)
+      expect(Number.isFinite(point.y)).toBe(true)
+    }
+  })
+
+  it('should clamp velocity to prevent explosion on direction reversal', () => {
+    const filter = kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
+
+    // Start moving right
+    filter.process(createPoint(0, 0, 0))
+    filter.process(createPoint(100, 0, 1))
+    filter.process(createPoint(200, 0, 2))
+    // Suddenly reverse direction
+    const result = filter.process(createPoint(0, 0, 3))
+
+    // Should not produce extreme values
+    expect(result).not.toBeNull()
+    expect(Math.abs(result!.x)).toBeLessThan(1000)
+    expect(Number.isFinite(result!.x)).toBe(true)
+  })
 })
 
 describe('MovingAverageFilter', () => {
