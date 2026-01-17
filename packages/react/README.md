@@ -8,6 +8,8 @@
 
 React hooks for stroke stabilization in digital drawing applications.
 
+**[Live Demo](https://usapopopooon.github.io/stroke-stabilizer/react/)**
+
 ## Installation
 
 ```bash

@@ -8,6 +8,8 @@
 
 Vue composables for stroke stabilization in digital drawing applications.
 
+**[Live Demo](https://usapopopooon.github.io/stroke-stabilizer/vue/)**
+
 ## Installation
 
 ```bash

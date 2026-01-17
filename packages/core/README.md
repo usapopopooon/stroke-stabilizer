@@ -8,6 +8,8 @@
 
 A lightweight, framework-agnostic stroke stabilization library for digital drawing applications.
 
+**[Live Demo](https://usapopopooon.github.io/stroke-stabilizer/)**
+
 Reduce hand tremor and smooth pen/mouse input in real-time using a flexible filter pipeline.
 
 ## Features
