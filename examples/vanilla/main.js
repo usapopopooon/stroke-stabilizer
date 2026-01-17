@@ -223,18 +223,23 @@ canvas.addEventListener('pointerdown', (e) => {
 canvas.addEventListener('pointermove', (e) => {
   if (!isDrawing) return
 
-  const point = {
-    x: e.offsetX,
-    y: e.offsetY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  }
+  // Use getCoalescedEvents() to get all points between frames
+  const coalescedEvents = e.getCoalescedEvents?.() ?? [e]
 
-  lastRawPoint = point
-  rawPoints.push(point)
-  const stabilized = pointer.process(point)
-  if (stabilized) {
-    stabilizedPoints.push(stabilized)
+  for (const ce of coalescedEvents) {
+    const point = {
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    }
+
+    lastRawPoint = point
+    rawPoints.push(point)
+    const stabilized = pointer.process(point)
+    if (stabilized) {
+      stabilizedPoints.push(stabilized)
+    }
   }
 })
 

@@ -153,18 +153,25 @@ export default function App() {
   const handlePointerMove = (e) => {
     if (!isDrawingRef.current) return
 
-    const point = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-      pressure: e.pressure,
-      timestamp: e.timeStamp,
-    }
+    // Use getCoalescedEvents() to get all points between frames
+    const coalescedEvents = e.nativeEvent.getCoalescedEvents?.() ?? [
+      e.nativeEvent,
+    ]
 
-    lastRawPointRef.current = point
-    rawPointsRef.current.push(point)
-    const stabilized = pointerRef.current.process(point)
-    if (stabilized) {
-      stabilizedPointsRef.current.push(stabilized)
+    for (const ce of coalescedEvents) {
+      const point = {
+        x: ce.offsetX,
+        y: ce.offsetY,
+        pressure: ce.pressure,
+        timestamp: ce.timeStamp,
+      }
+
+      lastRawPointRef.current = point
+      rawPointsRef.current.push(point)
+      const stabilized = pointerRef.current.process(point)
+      if (stabilized) {
+        stabilizedPointsRef.current.push(stabilized)
+      }
     }
   }
 

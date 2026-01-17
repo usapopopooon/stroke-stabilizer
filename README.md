@@ -48,21 +48,27 @@ npm install @stroke-stabilizer/core
 ```ts
 import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
-  .enableBatching({
-    onBatch: (points) => drawPoints(points),
-  })
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 canvas.addEventListener('pointermove', (e) => {
-  pointer.queue({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // IMPORTANT: Use getCoalescedEvents() for smoother input
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    const result = pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+    if (result) draw(result.x, result.y)
+  }
 })
 ```
+
+> **Important:** Always use `getCoalescedEvents()` to capture all pointer events between frames. Without it, browsers throttle events and you'll get choppy strokes.
 
 See [@stroke-stabilizer/core README](./packages/core/README.md) for full documentation.
 

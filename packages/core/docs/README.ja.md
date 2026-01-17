@@ -32,33 +32,78 @@ npm install @stroke-stabilizer/core
 ## クイックスタート
 
 ```ts
-import {
-  StabilizedPointer,
-  emaFilter,
-  oneEuroFilter,
-} from '@stroke-stabilizer/core'
+import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(emaFilter({ alpha: 0.5 }))
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 canvas.addEventListener('pointermove', (e) => {
-  const result = pointer.process({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // 重要: getCoalescedEvents() で滑らかな入力を取得
+  const events = e.getCoalescedEvents?.() ?? [e]
 
-  if (result) {
-    draw(result.x, result.y)
+  for (const ce of events) {
+    const result = pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+    if (result) draw(result.x, result.y)
   }
 })
 
 canvas.addEventListener('pointerup', () => {
-  pointer.reset()
+  const finalPoints = pointer.finish()
+  drawStroke(finalPoints)
 })
 ```
+
+> **重要:** `getCoalescedEvents()` を必ず使用してください。これを使わないとブラウザがイベントを間引くため、カクカクした線になります。詳しくは [getCoalescedEvents() の使い方](#getcoalescedevents-の使い方) を参照。
+
+## getCoalescedEvents() の使い方
+
+**滑らかなストロークに必須です。** ブラウザは `pointermove` イベントを約60fpsに間引きますが、ペンタブレットは毎秒200回以上のイベントを生成します。`getCoalescedEvents()` を使うと、失われるはずの中間点をすべて取得できます。
+
+```ts
+canvas.addEventListener('pointermove', (e) => {
+  // すべてのcoalescedイベントを取得（未対応ブラウザはシングルイベントにフォールバック）
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+  }
+})
+```
+
+**React:** `e.nativeEvent.getCoalescedEvents?.()` でアクセス
+
+```tsx
+const handlePointerMove = (e: React.PointerEvent) => {
+  const events = e.nativeEvent.getCoalescedEvents?.() ?? [e.nativeEvent]
+  for (const ce of events) {
+    pointer.process({ x: ce.offsetX, y: ce.offsetY, ... })
+  }
+}
+```
+
+**Vue:** ネイティブイベントに直接アクセス
+
+```ts
+function handlePointerMove(e: PointerEvent) {
+  const events = e.getCoalescedEvents?.() ?? [e]
+  for (const ce of events) {
+    pointer.process({ x: ce.offsetX, y: ce.offsetY, ... })
+  }
+}
+```
+
+`getCoalescedEvents()` を使わないと、どんなフィルタ設定でも速いストロークがカクカクになります。
 
 ## フィルタ
 

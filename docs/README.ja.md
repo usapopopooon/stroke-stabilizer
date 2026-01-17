@@ -48,21 +48,27 @@ npm install @stroke-stabilizer/core
 ```ts
 import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
-  .enableBatching({
-    onBatch: (points) => drawPoints(points),
-  })
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 canvas.addEventListener('pointermove', (e) => {
-  pointer.queue({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // 重要: getCoalescedEvents() で滑らかな入力を取得
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    const result = pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+    if (result) draw(result.x, result.y)
+  }
 })
 ```
+
+> **重要:** `getCoalescedEvents()` を必ず使用してください。これを使わないとブラウザがイベントを間引くため、カクカクした線になります。
 
 詳しくは [@stroke-stabilizer/core README](./packages/core/docs/README.ja.md) を見てください。
 

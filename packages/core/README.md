@@ -32,33 +32,78 @@ npm install @stroke-stabilizer/core
 ## Quick Start
 
 ```ts
-import {
-  StabilizedPointer,
-  emaFilter,
-  oneEuroFilter,
-} from '@stroke-stabilizer/core'
+import { StabilizedPointer, oneEuroFilter } from '@stroke-stabilizer/core'
 
-const pointer = new StabilizedPointer()
-  .addFilter(emaFilter({ alpha: 0.5 }))
-  .addFilter(oneEuroFilter({ minCutoff: 1.0, beta: 0.007 }))
+const pointer = new StabilizedPointer().addFilter(
+  oneEuroFilter({ minCutoff: 1.0, beta: 0.007 })
+)
 
 canvas.addEventListener('pointermove', (e) => {
-  const result = pointer.process({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // IMPORTANT: Use getCoalescedEvents() for smoother input
+  const events = e.getCoalescedEvents?.() ?? [e]
 
-  if (result) {
-    draw(result.x, result.y)
+  for (const ce of events) {
+    const result = pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+    if (result) draw(result.x, result.y)
   }
 })
 
 canvas.addEventListener('pointerup', () => {
-  pointer.reset()
+  const finalPoints = pointer.finish()
+  drawStroke(finalPoints)
 })
 ```
+
+> **Important:** Always use `getCoalescedEvents()` to capture all pointer events between frames. Without it, browsers throttle events and you'll get choppy strokes. See [Using getCoalescedEvents()](#using-getcoalescedevents) for details.
+
+## Using getCoalescedEvents()
+
+**This is essential for smooth strokes.** Browsers throttle `pointermove` events to ~60fps, but pen tablets can generate 200+ events per second. `getCoalescedEvents()` captures all the intermediate points that would otherwise be lost.
+
+```ts
+canvas.addEventListener('pointermove', (e) => {
+  // Get all coalesced events (falls back to single event if unsupported)
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    pointer.process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+  }
+})
+```
+
+**React:** Access via `e.nativeEvent.getCoalescedEvents?.()`
+
+```tsx
+const handlePointerMove = (e: React.PointerEvent) => {
+  const events = e.nativeEvent.getCoalescedEvents?.() ?? [e.nativeEvent]
+  for (const ce of events) {
+    pointer.process({ x: ce.offsetX, y: ce.offsetY, ... })
+  }
+}
+```
+
+**Vue:** Access directly on the native event
+
+```ts
+function handlePointerMove(e: PointerEvent) {
+  const events = e.getCoalescedEvents?.() ?? [e]
+  for (const ce of events) {
+    pointer.process({ x: ce.offsetX, y: ce.offsetY, ... })
+  }
+}
+```
+
+Without `getCoalescedEvents()`, fast strokes will appear jagged regardless of filter settings.
 
 ## Filters
 
