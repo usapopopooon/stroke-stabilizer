@@ -194,7 +194,7 @@ const responsive = emaFilter({ alpha: 0.8 })
 
 ### カルマンフィルター
 
-**目的：** 位置と速度を考慮したノイズ入力に対する最適な状態推定。
+**目的：** 位置のみのモデルを使用したノイズ入力に対する最適な状態推定。
 
 **仕組み：**
 
@@ -202,25 +202,20 @@ const responsive = emaFilter({ alpha: 0.8 })
 
 **数学モデル：**
 
-ここで使用される1Dカルマンフィルターは速度を伴う位置をモデル化します：
-
-**状態ベクトル：**
-
-$$\mathbf{x} = \begin{bmatrix} \text{位置} \\ \text{速度} \end{bmatrix}$$
+この実装では、高周波入力デバイス（144Hz以上）での安定性のために、速度を使用しないシンプルな位置のみのモデルを採用しています。
 
 **予測ステップ：**
 
-$$\hat{x}_{k|k-1} = F \cdot \hat{x}_{k-1|k-1}$$
-$$P_{k|k-1} = F \cdot P_{k-1|k-1} \cdot F^T + Q$$
+$$\hat{x}_{k|k-1} = \hat{x}_{k-1|k-1}$$
+$$P_{k|k-1} = P_{k-1|k-1} + Q$$
 
 **更新ステップ：**
 
-$$K_k = P_{k|k-1} \cdot H^T \cdot (H \cdot P_{k|k-1} \cdot H^T + R)^{-1}$$
-$$\hat{x}_{k|k} = \hat{x}_{k|k-1} + K_k \cdot (z_k - H \cdot \hat{x}_{k|k-1})$$
+$$K_k = \frac{P_{k|k-1}}{P_{k|k-1} + R}$$
+$$\hat{x}_{k|k} = \hat{x}_{k|k-1} + K_k \cdot (z_k - \hat{x}_{k|k-1})$$
 
 ここで：
 
-- $F$ は状態遷移行列
 - $Q$ はプロセスノイズ共分散
 - $R$ は測定ノイズ共分散
 - $K_k$ はカルマンゲイン
@@ -243,12 +238,12 @@ $$\hat{x}_{k|k} = \hat{x}_{k|k-1} + K_k \cdot (z_k - H \cdot \hat{x}_{k|k-1})$$
 
 - **最適：** ガウスノイズ仮定下での平均二乗誤差を最小化
 - **適応的：** カルマンゲインが予測と測定への信頼度に基づいて調整
-- **予測的：** 速度を使って次の位置を予測
+- **安定：** 位置のみのモデルにより、高周波入力でも暴走しない
 
 **使用場面：**
 
 - 手の震えによるノイズの多い入力
-- 速度を考慮したスムージングが必要な場合
+- 入力品質に応じた適応的スムージングが必要な場合
 - 最適推定が必要な科学/工学アプリケーション
 
 **例：**
@@ -714,14 +709,30 @@ const moderate = bilateralKernel({
 | `edge`    | エッジ値を繰り返す     | 反射がアーティファクトを作る場合 |
 | `zero`    | ゼロでパディング       | エッジをフェードさせたい場合     |
 
+**終点の保存：**
+
+デフォルトでは、`smooth()` はストロークの正確な始点と終点を保存します。これにより、安定化されたストロークがポインタを離した実際の位置に到達することが保証されます。
+
+| オプション          | デフォルト | 説明                                |
+| ------------------- | ---------- | ----------------------------------- |
+| `preserveEndpoints` | `true`     | 畳み込み後も元の始点/終点を維持する |
+
 **例：**
 
 ```ts
 import { smooth, gaussianKernel } from '@stroke-stabilizer/core'
 
+// デフォルト：終点が保存される
 const smoothed = smooth(points, {
   kernel: gaussianKernel({ size: 7 }),
-  padding: 'reflect', // または 'edge', 'zero'
+  padding: 'reflect',
+})
+
+// 終点保存を無効化（終点がずれる可能性あり）
+const smoothedAll = smooth(points, {
+  kernel: gaussianKernel({ size: 7 }),
+  padding: 'reflect',
+  preserveEndpoints: false,
 })
 ```
 

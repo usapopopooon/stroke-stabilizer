@@ -452,6 +452,119 @@ describe('StabilizedPointer', () => {
       // Both realtime filters and post processing applied
       expect(result.length).toBeGreaterThan(0)
     })
+
+    it('should converge to the final input point on finish (drain filters)', () => {
+      // Use Kalman filter which converges with repeated input
+      pointer.addFilter(
+        kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
+      )
+
+      // Draw a line
+      const points = [
+        createPoint(0, 0, 0),
+        createPoint(20, 20, 100),
+        createPoint(40, 40, 200),
+        createPoint(60, 60, 300),
+        createPoint(80, 80, 400),
+        createPoint(100, 100, 500), // Final input point
+      ]
+
+      for (const p of points) {
+        pointer.process(p)
+      }
+
+      const result = pointer.finish()
+
+      // Last result point should be close to final input point (100, 100)
+      const lastPoint = result[result.length - 1]
+      const distanceToTarget = Math.sqrt(
+        (lastPoint.x - 100) ** 2 + (lastPoint.y - 100) ** 2
+      )
+
+      expect(distanceToTarget).toBeLessThan(2) // Should converge within 2 pixels
+    })
+
+    it('should not drastically change string filter behavior on finish', () => {
+      // String filter maintains its "lazy" delay characteristic
+      // It won't fully converge to target, which is by design
+      pointer.addFilter(stringFilter({ stringLength: 20 }))
+
+      const points = [
+        createPoint(0, 0, 0),
+        createPoint(20, 20, 100),
+        createPoint(40, 40, 200),
+        createPoint(60, 60, 300),
+        createPoint(80, 80, 400),
+        createPoint(100, 100, 500),
+      ]
+
+      for (const p of points) {
+        pointer.process(p)
+      }
+
+      const result = pointer.finish()
+
+      // String filter will lag behind by its string length
+      // Just verify it produces valid output
+      expect(result.length).toBeGreaterThan(0)
+      const lastPoint = result[result.length - 1]
+      expect(lastPoint.x).toBeGreaterThan(50) // Should have moved toward target
+      expect(lastPoint.y).toBeGreaterThan(50)
+    })
+
+    it('should converge with Kalman filter on finish', () => {
+      pointer.addFilter(
+        kalmanFilter({ processNoise: 0.1, measurementNoise: 0.8 })
+      )
+
+      const points = [
+        createPoint(0, 0, 0),
+        createPoint(50, 50, 100),
+        createPoint(100, 100, 200),
+        createPoint(150, 150, 300),
+        createPoint(200, 200, 400), // Final input point
+      ]
+
+      for (const p of points) {
+        pointer.process(p)
+      }
+
+      const result = pointer.finish()
+
+      // Last result point should be close to final input point (200, 200)
+      const lastPoint = result[result.length - 1]
+      const distanceToTarget = Math.sqrt(
+        (lastPoint.x - 200) ** 2 + (lastPoint.y - 200) ** 2
+      )
+
+      expect(distanceToTarget).toBeLessThan(3) // Allow slightly more tolerance for heavy smoothing
+    })
+
+    it('should converge with moving average filter on finish', () => {
+      pointer.addFilter(movingAverageFilter({ windowSize: 5 }))
+
+      const points = [
+        createPoint(0, 0, 0),
+        createPoint(25, 25, 100),
+        createPoint(50, 50, 200),
+        createPoint(75, 75, 300),
+        createPoint(100, 100, 400), // Final input point
+      ]
+
+      for (const p of points) {
+        pointer.process(p)
+      }
+
+      const result = pointer.finish()
+
+      // Last result point should be close to final input point (100, 100)
+      const lastPoint = result[result.length - 1]
+      const distanceToTarget = Math.sqrt(
+        (lastPoint.x - 100) ** 2 + (lastPoint.y - 100) ** 2
+      )
+
+      expect(distanceToTarget).toBeLessThan(2)
+    })
   })
 
   // ========================================

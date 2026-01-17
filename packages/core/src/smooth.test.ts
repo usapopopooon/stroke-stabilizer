@@ -480,3 +480,258 @@ function computeVariance(values: number[]): number {
   const mean = values.reduce((a, b) => a + b, 0) / values.length
   return values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length
 }
+
+// ============================================
+// preserveEndpoints Tests
+// ============================================
+
+describe('smooth - preserveEndpoints option', () => {
+  it('should preserve exact start and end points when enabled', () => {
+    const points: Point[] = [
+      { x: 0, y: 0 },
+      { x: 10, y: 100 },
+      { x: 20, y: 0 },
+      { x: 30, y: 100 },
+      { x: 40, y: 0 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 5 }),
+      padding: 'reflect',
+      preserveEndpoints: true,
+    })
+
+    // Endpoints should match exactly
+    expect(result[0].x).toBe(0)
+    expect(result[0].y).toBe(0)
+    expect(result[result.length - 1].x).toBe(40)
+    expect(result[result.length - 1].y).toBe(0)
+  })
+
+  it('should preserve endpoints by default', () => {
+    const points: Point[] = [
+      { x: 0, y: 0 },
+      { x: 10, y: 100 },
+      { x: 20, y: 0 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 3 }),
+      padding: 'reflect',
+    })
+
+    // Endpoints should be preserved by default
+    expect(result[0].x).toBe(0)
+    expect(result[0].y).toBe(0)
+    expect(result[result.length - 1].x).toBe(20)
+    expect(result[result.length - 1].y).toBe(0)
+  })
+
+  it('should not preserve endpoints when explicitly disabled', () => {
+    const points: Point[] = [
+      { x: 0, y: 0 },
+      { x: 10, y: 100 },
+      { x: 20, y: 0 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 3 }),
+      padding: 'reflect',
+      preserveEndpoints: false,
+    })
+
+    // With reflect padding and preserveEndpoints: false, endpoints may be pulled toward interior
+    expect(result.length).toBe(3)
+  })
+
+  it('should work with box kernel', () => {
+    const points: Point[] = [
+      { x: 5, y: 10 },
+      { x: 15, y: 50 },
+      { x: 25, y: 30 },
+    ]
+
+    const result = smooth(points, {
+      kernel: boxKernel({ size: 3 }),
+      preserveEndpoints: true,
+    })
+
+    expect(result[0].x).toBe(5)
+    expect(result[0].y).toBe(10)
+    expect(result[result.length - 1].x).toBe(25)
+    expect(result[result.length - 1].y).toBe(30)
+  })
+
+  it('should work with bilateral kernel', () => {
+    const points: Point[] = [
+      { x: 100, y: 200 },
+      { x: 110, y: 210 },
+      { x: 120, y: 220 },
+      { x: 130, y: 230 },
+      { x: 140, y: 240 },
+    ]
+
+    const result = smooth(points, {
+      kernel: bilateralKernel({ size: 5, sigmaValue: 10 }),
+      preserveEndpoints: true,
+    })
+
+    expect(result[0].x).toBe(100)
+    expect(result[0].y).toBe(200)
+    expect(result[result.length - 1].x).toBe(140)
+    expect(result[result.length - 1].y).toBe(240)
+  })
+
+  it('should handle single point with preserveEndpoints', () => {
+    const points: Point[] = [{ x: 50, y: 75 }]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 5 }),
+      preserveEndpoints: true,
+    })
+
+    expect(result.length).toBe(1)
+    expect(result[0].x).toBe(50)
+    expect(result[0].y).toBe(75)
+  })
+
+  it('should handle two points with preserveEndpoints', () => {
+    const points: Point[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 100 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 5 }),
+      preserveEndpoints: true,
+    })
+
+    expect(result.length).toBe(2)
+    expect(result[0].x).toBe(0)
+    expect(result[0].y).toBe(0)
+    expect(result[1].x).toBe(100)
+    expect(result[1].y).toBe(100)
+  })
+
+  it('should still smooth interior points when preserving endpoints', () => {
+    const points: Point[] = [
+      { x: 0, y: 0 },
+      { x: 10, y: 100 }, // Spike
+      { x: 20, y: 0 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 3 }),
+      preserveEndpoints: true,
+    })
+
+    // Endpoints preserved
+    expect(result[0].y).toBe(0)
+    expect(result[2].y).toBe(0)
+
+    // Interior point should still be smoothed (pulled down from 100)
+    expect(result[1].y).toBeLessThan(100)
+    expect(result[1].y).toBeGreaterThan(0)
+  })
+
+  it('should work with all padding modes when preserving endpoints', () => {
+    const points: Point[] = [
+      { x: 10, y: 20 },
+      { x: 30, y: 40 },
+      { x: 50, y: 60 },
+    ]
+    const kernel = gaussianKernel({ size: 3 })
+
+    const reflectResult = smooth(points, {
+      kernel,
+      padding: 'reflect',
+      preserveEndpoints: true,
+    })
+    const edgeResult = smooth(points, {
+      kernel,
+      padding: 'edge',
+      preserveEndpoints: true,
+    })
+    const zeroResult = smooth(points, {
+      kernel,
+      padding: 'zero',
+      preserveEndpoints: true,
+    })
+
+    // All should preserve endpoints regardless of padding mode
+    for (const result of [reflectResult, edgeResult, zeroResult]) {
+      expect(result[0].x).toBe(10)
+      expect(result[0].y).toBe(20)
+      expect(result[result.length - 1].x).toBe(50)
+      expect(result[result.length - 1].y).toBe(60)
+    }
+  })
+
+  it('should have zero distance between original and smoothed endpoints', () => {
+    // Simulate a real stroke where endpoint would drift without preserveEndpoints
+    const points: Point[] = [
+      { x: 100, y: 100 },
+      { x: 150, y: 120 },
+      { x: 200, y: 150 },
+      { x: 250, y: 200 },
+      { x: 300, y: 280 },
+      { x: 350, y: 350 },
+      { x: 400, y: 400 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 5 }),
+      padding: 'reflect',
+      // preserveEndpoints defaults to true
+    })
+
+    const originalStart = points[0]
+    const originalEnd = points[points.length - 1]
+    const smoothedStart = result[0]
+    const smoothedEnd = result[result.length - 1]
+
+    // Calculate distances
+    const startDistance = Math.sqrt(
+      (smoothedStart.x - originalStart.x) ** 2 +
+        (smoothedStart.y - originalStart.y) ** 2
+    )
+    const endDistance = Math.sqrt(
+      (smoothedEnd.x - originalEnd.x) ** 2 +
+        (smoothedEnd.y - originalEnd.y) ** 2
+    )
+
+    // Both distances should be exactly zero
+    expect(startDistance).toBe(0)
+    expect(endDistance).toBe(0)
+  })
+
+  it('should have non-zero distance when preserveEndpoints is disabled', () => {
+    const points: Point[] = [
+      { x: 100, y: 100 },
+      { x: 150, y: 120 },
+      { x: 200, y: 150 },
+      { x: 250, y: 200 },
+      { x: 300, y: 280 },
+      { x: 350, y: 350 },
+      { x: 400, y: 400 },
+    ]
+
+    const result = smooth(points, {
+      kernel: gaussianKernel({ size: 5 }),
+      padding: 'reflect',
+      preserveEndpoints: false,
+    })
+
+    const originalEnd = points[points.length - 1]
+    const smoothedEnd = result[result.length - 1]
+
+    // With reflect padding and no endpoint preservation, endpoint should drift
+    const endDistance = Math.sqrt(
+      (smoothedEnd.x - originalEnd.x) ** 2 +
+        (smoothedEnd.y - originalEnd.y) ** 2
+    )
+
+    // Distance should be non-zero (endpoint drifted)
+    expect(endDistance).toBeGreaterThan(0)
+  })
+})

@@ -57,7 +57,8 @@
     "Roussel",
     "Vogel",
     "rolloff",
-    "Cramer"
+    "Cramer",
+    "Géry"
   ],
   "ignorePaths": [
     "node_modules",

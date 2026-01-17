@@ -42,4 +42,6 @@ export type PaddingMode = 'reflect' | 'edge' | 'zero'
 export interface SmoothOptions {
   kernel: AnyKernel
   padding?: PaddingMode
+  /** Preserve start and end points exactly (default: true) */
+  preserveEndpoints?: boolean
 }

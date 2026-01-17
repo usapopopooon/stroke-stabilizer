@@ -149,6 +149,60 @@ describe('KalmanFilter', () => {
     expect(Math.abs(result!.x)).toBeLessThan(1000)
     expect(Number.isFinite(result!.x)).toBe(true)
   })
+
+  it('should not drift away from input on realistic browser events', () => {
+    // Simulates actual browser pointer events with realistic timestamps
+    // This catches the velocity explosion bug that occurred in production
+    const filter = kalmanFilter({ processNoise: 0.08, measurementNoise: 0.7 })
+
+    const results: PointerPoint[] = []
+    let baseTime = 1000
+
+    // Simulate drawing a horizontal line with occasional rapid events
+    for (let i = 0; i < 50; i++) {
+      const x = 400 + i * 2
+      const y = 300
+      // Mix of normal intervals (8-16ms) and occasional rapid bursts (1-2ms)
+      const dt = i % 5 === 0 ? 1 : 8 + Math.floor(i % 8)
+      baseTime += dt
+
+      const result = filter.process({ x, y, timestamp: baseTime })
+      if (result) {
+        results.push(result)
+
+        // Output should stay reasonably close to input
+        const diffX = Math.abs(result.x - x)
+        const diffY = Math.abs(result.y - y)
+        expect(diffX).toBeLessThan(100) // Should not drift more than 100px
+        expect(diffY).toBeLessThan(100)
+      }
+    }
+  })
+
+  it('should handle zigzag input without exploding', () => {
+    // This is the exact pattern that caused the bug: rapid zigzag with short dt
+    const filter = kalmanFilter({ processNoise: 0.08, measurementNoise: 0.7 })
+
+    let time = 5000
+    const inputX = 400
+
+    // Simulate rapid zigzag drawing
+    for (let i = 0; i < 100; i++) {
+      const x = inputX + (i % 2 === 0 ? 20 : -20)
+      const y = 300 + i
+      time += 7 // ~143 Hz, common for 144Hz displays
+
+      const result = filter.process({ x, y, timestamp: time })
+
+      if (result) {
+        // Critical: output X should stay within reasonable bounds of input
+        expect(result.x).toBeGreaterThan(inputX - 150)
+        expect(result.x).toBeLessThan(inputX + 150)
+        expect(Number.isFinite(result.x)).toBe(true)
+        expect(Number.isFinite(result.y)).toBe(true)
+      }
+    }
+  })
 })
 
 describe('MovingAverageFilter', () => {

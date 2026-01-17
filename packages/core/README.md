@@ -68,7 +68,7 @@ canvas.addEventListener('pointerup', () => {
 | `noiseFilter`            | Rejects points too close together | Remove jitter                      |
 | `movingAverageFilter`    | Simple moving average (FIR)       | Basic smoothing                    |
 | `emaFilter`              | Exponential moving average (IIR)  | Low-latency smoothing              |
-| `kalmanFilter`           | Kalman filter                     | Noisy input with velocity          |
+| `kalmanFilter`           | Kalman filter                     | Noisy input smoothing              |
 | `stringFilter`           | Lazy Brush algorithm              | Delayed, smooth strokes            |
 | `oneEuroFilter`          | Adaptive lowpass filter           | Best balance of smoothness/latency |
 | `linearPredictionFilter` | Predicts next position            | Lag compensation                   |
@@ -175,6 +175,25 @@ import { smooth, bilateralKernel } from '@stroke-stabilizer/core'
 const smoothed = smooth(points, {
   kernel: bilateralKernel({ size: 7, sigmaValue: 10 }),
   padding: 'reflect',
+})
+```
+
+### Endpoint Preservation
+
+By default, `smooth()` preserves exact start and end points so the stroke reaches the actual pointer position.
+
+```ts
+import { smooth, gaussianKernel } from '@stroke-stabilizer/core'
+
+// Default: endpoints preserved (recommended)
+const smoothed = smooth(points, {
+  kernel: gaussianKernel({ size: 5 }),
+})
+
+// Disable endpoint preservation
+const smoothedAll = smooth(points, {
+  kernel: gaussianKernel({ size: 5 }),
+  preserveEndpoints: false,
 })
 ```
 

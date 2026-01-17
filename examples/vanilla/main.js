@@ -98,11 +98,12 @@ canvas.addEventListener('pointerup', () => {
   if (!isDrawing) return
   isDrawing = false
 
-  // Apply post-processing smoothing
-  if (stabilizedPoints.length > 2) {
-    stabilizedPoints = smooth(stabilizedPoints, {
+  // Finish stroke and apply post-processing smoothing
+  const finishedPoints = pointer.finish()
+
+  if (finishedPoints.length > 2) {
+    stabilizedPoints = smooth(finishedPoints, {
       kernel: gaussianKernel({ size: 5 }),
-      padding: 'reflect',
     })
     redraw()
   }

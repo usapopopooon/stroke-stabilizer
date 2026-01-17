@@ -74,16 +74,22 @@ function applyPadding(
  * ```
  */
 export function smooth(points: Point[], options: SmoothOptions): Point[] {
-  const { kernel, padding = 'reflect' } = options
+  const { kernel, padding = 'reflect', preserveEndpoints = true } = options
 
   if (points.length === 0) return []
+
+  // Save original endpoints if preserving
+  const originalStart = points[0]
+  const originalEnd = points[points.length - 1]
+
+  let result: Point[]
 
   // Adaptive kernel (Bilateral, etc.)
   if (isAdaptiveKernel(kernel)) {
     const halfSize = Math.floor(kernel.size / 2)
     const padded = applyPadding(points, halfSize, padding)
 
-    const result: Point[] = []
+    result = []
 
     for (let i = 0; i < points.length; i++) {
       const centerIdx = i + halfSize
@@ -106,32 +112,38 @@ export function smooth(points: Point[], options: SmoothOptions): Point[] {
 
       result.push({ x: sumX, y: sumY })
     }
+  } else {
+    // Fixed-weight kernel (Gaussian, Box, Triangle, etc.)
+    const fixedKernel = kernel as Kernel
+    const { weights } = fixedKernel
 
-    return result
+    if (weights.length <= 1) return [...points]
+
+    const halfSize = Math.floor(weights.length / 2)
+    const padded = applyPadding(points, halfSize, padding)
+
+    result = []
+
+    for (let i = 0; i < points.length; i++) {
+      let sumX = 0
+      let sumY = 0
+
+      for (let k = 0; k < weights.length; k++) {
+        const point = padded[i + k]
+        sumX += point.x * weights[k]
+        sumY += point.y * weights[k]
+      }
+
+      result.push({ x: sumX, y: sumY })
+    }
   }
 
-  // Fixed-weight kernel (Gaussian, Box, Triangle, etc.)
-  const fixedKernel = kernel as Kernel
-  const { weights } = fixedKernel
-
-  if (weights.length <= 1) return [...points]
-
-  const halfSize = Math.floor(weights.length / 2)
-  const padded = applyPadding(points, halfSize, padding)
-
-  const result: Point[] = []
-
-  for (let i = 0; i < points.length; i++) {
-    let sumX = 0
-    let sumY = 0
-
-    for (let k = 0; k < weights.length; k++) {
-      const point = padded[i + k]
-      sumX += point.x * weights[k]
-      sumY += point.y * weights[k]
+  // Restore original endpoints if preserving
+  if (preserveEndpoints && result.length > 0) {
+    result[0] = { ...originalStart }
+    if (result.length > 1) {
+      result[result.length - 1] = { ...originalEnd }
     }
-
-    result.push({ x: sumX, y: sumY })
   }
 
   return result

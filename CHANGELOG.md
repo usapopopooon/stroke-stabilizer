@@ -5,114 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2026-01-17
+## [0.1.0] - 2026-01-17
 
-### Added
+Initial release.
 
-#### @stroke-stabilizer/core
+### @stroke-stabilizer/core
 
-- `finishWithoutReset()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
-- `reset()` is now documented as a public API for manually resetting filters and clearing the buffer
+#### Features
 
-#### Documentation
+- **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime without rebuilding
+- **Two-layer Processing** - Real-time filters + post-processing convolution
+- **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
+- **Edge-preserving Smoothing** - Bilateral kernel for sharp corner preservation
+- **TypeScript First** - Full type safety with exported types
+- **Zero Dependencies** - Pure JavaScript, works anywhere
 
-- Filter reference documentation with mathematical formulas
-  - `docs/filters.md` (English)
-  - `docs/filters.ja.md` (Japanese)
-- Japanese README documentation for all packages
-  - `docs/README.ja.md` (root)
-  - `packages/core/docs/README.ja.md`
-  - `packages/react/docs/README.ja.md`
-  - `packages/vue/docs/README.ja.md`
-- Language switch links in all README files (English ↔ Japanese)
+#### Real-time Filters
 
-#### Infrastructure
+- `noiseFilter` - Minimum distance threshold for noise rejection
+- `movingAverageFilter` - Simple moving average (FIR) smoothing
+- `emaFilter` - Exponential Moving Average (IIR) with configurable alpha
+- `kalmanFilter` - Position-only Kalman filter optimized for high-frequency input
+- `oneEuroFilter` - Speed-adaptive low-pass filter (low latency at high speed)
+- `stringFilter` - "Lazy brush" effect with virtual string
+- `linearPredictionFilter` - Velocity-based position prediction
 
-- GitHub Actions CI workflow (Node.js 18, 20, 22 matrix)
-- cspell for spell checking
+#### Post-processing Kernels
 
-### Changed
+- `gaussianKernel` - Gaussian-weighted smoothing
+- `boxKernel` - Uniform weight (simple averaging)
+- `triangleKernel` - Center-weighted linear falloff
+- `bilateralKernel` - Adaptive edge-preserving smoothing
 
-- `finish()` now internally uses `finishWithoutReset()` for code reuse
-- Improved README wording for monorepo references
+#### API
 
-## [0.2.0] - 2026-01-15
+- `StabilizedPointer` - Main class for managing filter pipelines
+- `smooth()` - Bidirectional convolution with padding modes and endpoint preservation
+- `createFromPreset()` - Level-based preset factory (0-100)
+- `finish()` / `finishWithoutReset()` - Post-processing with/without buffer reset
 
-### Added
-
-#### @stroke-stabilizer/core
-
-- **rAF Batch Processing** - requestAnimationFrame-based batching for high-frequency pointer events
-  - `enableBatching(config)` - Enable batch processing with optional callbacks
-  - `disableBatching()` - Disable batch processing (flushes pending points)
-  - `queue(point)` - Queue a point for batch processing
-  - `queueAll(points)` - Queue multiple points
-  - `flushBatch()` - Force process pending points immediately
-  - `isBatchingEnabled` - Check if batching is enabled
-  - `pendingCount` - Get number of pending points
-- `BatchConfig` type export for TypeScript users
-
-### Changed
-
-- All method chaining APIs now support batching methods seamlessly
-- `finish()` now automatically flushes pending batched points before post-processing
-
-### Infrastructure
-
-- Added `.claude/` to .gitignore
-- Volta pin for Node.js LTS
-- Test count increased to 128 (added 23 batch processing tests)
-
-## [0.1.2] - 2026-01-15
-
-### Added
-
-- LICENSE file
-
-## [0.1.1] - 2026-01-15
-
-### Added
-
-#### @stroke-stabilizer/core
-
-- **Dynamic Pipeline Pattern** - Flexible real-time filter chain architecture
-- **StabilizedPointer** - Main class for managing filter pipelines
-- **7 Built-in Filters:**
-  - `noiseFilter` - Minimum distance threshold for noise rejection
-  - `movingAverageFilter` - Simple moving average smoothing
-  - `emaFilter` - Exponential Moving Average with configurable alpha
-  - `kalmanFilter` - 1D Kalman filter for optimal state estimation
-  - `oneEuroFilter` - Speed-adaptive low-pass filter (low latency at high speed)
-  - `stringFilter` - "Lazy brush" effect with virtual string
-  - `linearPredictionFilter` - Velocity-based position prediction
-- **4 Convolution Kernels for Post-processing:**
-  - `gaussianKernel` - Gaussian-weighted smoothing
-  - `boxKernel` - Uniform weight (simple averaging)
-  - `triangleKernel` - Center-weighted linear falloff
-  - `bilateralKernel` - Adaptive edge-preserving smoothing
-- **smooth()** - Bidirectional convolution function with padding modes
-- **createStabilizedPointer()** - Level-based preset factory (0-100)
-- Full TypeScript support with comprehensive type definitions
-
-#### @stroke-stabilizer/react
+### @stroke-stabilizer/react
 
 - `useStabilizedPointer` - React hook for stroke stabilization
 - `useStabilizationLevel` - React hook for managing stabilization level state
 
-#### @stroke-stabilizer/vue
+### @stroke-stabilizer/vue
 
 - `useStabilizedPointer` - Vue composable for stroke stabilization
 - `useStabilizationLevel` - Vue composable for managing stabilization level state
+
+### Documentation
+
+- Filter reference with mathematical formulas (`docs/filters.md`, `docs/filters.ja.md`)
+- Full Japanese documentation for all packages
+- Example applications for Vanilla JS, React, and Vue
 
 ### Infrastructure
 
 - pnpm monorepo with workspace support
 - Vite build system with dual CJS/ESM output
-- Vitest test framework (105 tests)
-- ESLint + Prettier configuration
+- Vitest test framework (150+ tests)
+- GitHub Actions CI workflow
+- ESLint + Prettier + cspell configuration
 - TypeScript strict mode
 
-[0.3.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.3.0
-[0.2.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.0
-[0.1.2]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.2
-[0.1.1]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.1
+[0.1.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.0

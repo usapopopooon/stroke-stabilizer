@@ -63,15 +63,15 @@ canvas.addEventListener('pointerup', () => {
 
 ### リアルタイムフィルター
 
-| フィルター               | 説明                     | 用途                         |
-| ------------------------ | ------------------------ | ---------------------------- |
-| `noiseFilter`            | 近接した点を拒否         | ジッター除去                 |
-| `movingAverageFilter`    | 単純移動平均（FIR）      | 基本的なスムージング         |
-| `emaFilter`              | 指数移動平均（IIR）      | 低遅延スムージング           |
-| `kalmanFilter`           | カルマンフィルター       | ノイズの多い入力と速度処理   |
-| `stringFilter`           | Lazy Brush アルゴリズム  | 遅延のある滑らかなストローク |
-| `oneEuroFilter`          | 適応型ローパスフィルター | 滑らかさと遅延の最適バランス |
-| `linearPredictionFilter` | 次の位置を予測           | ラグ補正                     |
+| フィルター               | 説明                     | 用途                           |
+| ------------------------ | ------------------------ | ------------------------------ |
+| `noiseFilter`            | 近接した点を拒否         | ジッター除去                   |
+| `movingAverageFilter`    | 単純移動平均（FIR）      | 基本的なスムージング           |
+| `emaFilter`              | 指数移動平均（IIR）      | 低遅延スムージング             |
+| `kalmanFilter`           | カルマンフィルター       | ノイズの多い入力のスムージング |
+| `stringFilter`           | Lazy Brush アルゴリズム  | 遅延のある滑らかなストローク   |
+| `oneEuroFilter`          | 適応型ローパスフィルター | 滑らかさと遅延の最適バランス   |
+| `linearPredictionFilter` | 次の位置を予測           | ラグ補正                       |
 
 ### ポストプロセスカーネル
 
@@ -175,6 +175,25 @@ import { smooth, bilateralKernel } from '@stroke-stabilizer/core'
 const smoothed = smooth(points, {
   kernel: bilateralKernel({ size: 7, sigmaValue: 10 }),
   padding: 'reflect',
+})
+```
+
+### 終点の保存
+
+デフォルトでは、`smooth()` は正確な始点と終点を保存し、ストロークが実際のポインタ位置に到達するようにします。
+
+```ts
+import { smooth, gaussianKernel } from '@stroke-stabilizer/core'
+
+// デフォルト：終点が保存される（推奨）
+const smoothed = smooth(points, {
+  kernel: gaussianKernel({ size: 5 }),
+})
+
+// 終点保存を無効化
+const smoothedAll = smooth(points, {
+  kernel: gaussianKernel({ size: 5 }),
+  preserveEndpoints: false,
 })
 ```
 

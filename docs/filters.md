@@ -194,7 +194,7 @@ const responsive = emaFilter({ alpha: 0.8 })
 
 ### Kalman Filter
 
-**Purpose:** Optimal state estimation for noisy input, considering both position and velocity.
+**Purpose:** Optimal state estimation for noisy input using a position-only model.
 
 **How it works:**
 
@@ -202,25 +202,20 @@ The Kalman filter is a recursive algorithm that estimates the true state of a sy
 
 **Mathematical model:**
 
-The 1D Kalman filter used here models position with velocity:
-
-**State vector:**
-
-$$\mathbf{x} = \begin{bmatrix} \text{position} \\ \text{velocity} \end{bmatrix}$$
+This implementation uses a simplified position-only model (no velocity) for stability with high-frequency input devices (144Hz+).
 
 **Prediction step:**
 
-$$\hat{x}_{k|k-1} = F \cdot \hat{x}_{k-1|k-1}$$
-$$P_{k|k-1} = F \cdot P_{k-1|k-1} \cdot F^T + Q$$
+$$\hat{x}_{k|k-1} = \hat{x}_{k-1|k-1}$$
+$$P_{k|k-1} = P_{k-1|k-1} + Q$$
 
 **Update step:**
 
-$$K_k = P_{k|k-1} \cdot H^T \cdot (H \cdot P_{k|k-1} \cdot H^T + R)^{-1}$$
-$$\hat{x}_{k|k} = \hat{x}_{k|k-1} + K_k \cdot (z_k - H \cdot \hat{x}_{k|k-1})$$
+$$K_k = \frac{P_{k|k-1}}{P_{k|k-1} + R}$$
+$$\hat{x}_{k|k} = \hat{x}_{k|k-1} + K_k \cdot (z_k - \hat{x}_{k|k-1})$$
 
 Where:
 
-- $F$ is the state transition matrix
 - $Q$ is the process noise covariance
 - $R$ is the measurement noise covariance
 - $K_k$ is the Kalman gain
@@ -243,12 +238,12 @@ Where:
 
 - **Optimal:** Minimizes mean squared error under Gaussian noise assumptions
 - **Adaptive:** Kalman gain adjusts based on confidence in prediction vs measurement
-- **Predictive:** Uses velocity to predict next position
+- **Stable:** Position-only model prevents runaway behavior with high-frequency input
 
 **When to use:**
 
 - Noisy input from trembling hands
-- When you need velocity-aware smoothing
+- When you need adaptive smoothing based on input quality
 - Scientific/engineering applications requiring optimal estimation
 
 **Example:**
@@ -714,14 +709,30 @@ Post-processing uses **bidirectional convolution**, applying the kernel in both 
 | `edge`    | Repeat edge values          | When reflection creates artifacts |
 | `zero`    | Pad with zeros              | When edges should fade            |
 
+**Endpoint preservation:**
+
+By default, `smooth()` preserves the exact start and end points of the stroke. This ensures the stabilized stroke reaches the actual position where the pointer was lifted.
+
+| Option              | Default | Description                                      |
+| ------------------- | ------- | ------------------------------------------------ |
+| `preserveEndpoints` | `true`  | Keep original start/end points after convolution |
+
 **Example:**
 
 ```ts
 import { smooth, gaussianKernel } from '@stroke-stabilizer/core'
 
+// Default: endpoints are preserved
 const smoothed = smooth(points, {
   kernel: gaussianKernel({ size: 7 }),
-  padding: 'reflect', // or 'edge', 'zero'
+  padding: 'reflect',
+})
+
+// Disable endpoint preservation (endpoints may drift)
+const smoothedAll = smooth(points, {
+  kernel: gaussianKernel({ size: 7 }),
+  padding: 'reflect',
+  preserveEndpoints: false,
 })
 ```
 

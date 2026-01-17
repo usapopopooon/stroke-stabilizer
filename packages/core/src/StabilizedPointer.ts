@@ -46,6 +46,7 @@ export class StabilizedPointer {
   private filters: Filter[] = []
   private postProcessors: PostProcessor[] = []
   private buffer: PointerPoint[] = []
+  private lastRawPoint: PointerPoint | null = null
 
   // Batch processing fields
   private batchConfig: BatchConfig | null = null
@@ -113,6 +114,9 @@ export class StabilizedPointer {
    * @returns Processed result (null if rejected by a filter)
    */
   process(point: PointerPoint): PointerPoint | null {
+    // Save raw input for convergence on finish
+    this.lastRawPoint = point
+
     let current: PointerPoint | null = point
 
     for (const filter of this.filters) {
@@ -178,6 +182,8 @@ export class StabilizedPointer {
       filter.reset()
     }
     this.buffer = []
+    this.lastRawPoint = null
+    this.hasDrained = false
   }
 
   /**
@@ -273,6 +279,9 @@ export class StabilizedPointer {
       this.flushBatch()
     }
 
+    // Append endpoint to ensure stroke ends at actual input point
+    this.appendEndpoint()
+
     let points: Point[] = [...this.buffer]
 
     // Apply post-processors in order
@@ -284,6 +293,52 @@ export class StabilizedPointer {
     }
 
     return points
+  }
+
+  /**
+   * Track if drain has been called to avoid duplicate draining
+   */
+  private hasDrained = false
+
+  /**
+   * Append the final raw input point to ensure stroke ends at the actual endpoint
+   *
+   * Instead of draining filters (which adds many extra points),
+   * we simply append the raw endpoint. The post-processing phase
+   * with bidirectional convolution will naturally smooth the transition.
+   */
+  private appendEndpoint(): void {
+    // Avoid duplicate appending (finishWithoutReset may be called multiple times)
+    if (this.hasDrained) {
+      return
+    }
+    if (this.lastRawPoint === null || this.buffer.length === 0) {
+      return
+    }
+
+    this.hasDrained = true
+
+    const target = this.lastRawPoint
+    const lastBufferPoint = this.buffer[this.buffer.length - 1]
+
+    // Calculate distance between last stabilized point and target
+    const dx = target.x - lastBufferPoint.x
+    const dy = target.y - lastBufferPoint.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    // If already close enough, no need to append
+    if (distance < 1) {
+      return
+    }
+
+    // Append the raw endpoint directly to the buffer
+    // Post-processing (Gaussian, etc.) will smooth the transition
+    this.buffer.push({
+      x: target.x,
+      y: target.y,
+      pressure: target.pressure ?? 1,
+      timestamp: target.timestamp + 8,
+    })
   }
 
   /**
