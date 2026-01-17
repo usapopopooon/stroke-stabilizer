@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-17
+
+### Added
+
+#### @stroke-stabilizer/core
+- `applyPostProcess()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
+
+#### Documentation
+- Japanese README documentation for all packages
+  - `docs/README.ja.md` (root)
+  - `packages/core/docs/README.ja.md`
+  - `packages/react/docs/README.ja.md`
+  - `packages/vue/docs/README.ja.md`
+- Language switch links in all README files (English ↔ Japanese)
+
+### Changed
+
+- `finish()` now internally uses `applyPostProcess()` for code reuse
+- Improved README wording for monorepo references
+
 ## [0.2.0] - 2026-01-15
 
 ### Added
@@ -76,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint + Prettier configuration
 - TypeScript strict mode
 
+[0.3.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.3.0
 [0.2.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.0
 [0.1.2]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.2
 [0.1.1]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.1

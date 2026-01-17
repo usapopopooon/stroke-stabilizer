@@ -2,19 +2,19 @@
 
 [![npm version](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react)
 
-[日本語](./docs/README.ja.md)
+[English](../README.md)
 
-> This is part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+> これは [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) モノレポの一部です
 
-React hooks for stroke stabilization in digital drawing applications.
+デジタルドローイングアプリケーション向けのストローク手ぶれ補正用 React hooks です。
 
-## Installation
+## インストール
 
 ```bash
 npm install @stroke-stabilizer/react @stroke-stabilizer/core
 ```
 
-## Usage
+## 使用方法
 
 ### useStabilizedPointer
 
@@ -49,9 +49,9 @@ function DrawingCanvas() {
 }
 ```
 
-### With rAF Batch Processing
+### rAF バッチ処理
 
-For high-frequency input devices, use the underlying `StabilizedPointer`'s batch processing:
+高頻度入力デバイス向けに、`StabilizedPointer` のバッチ処理を使用できます：
 
 ```tsx
 import { useStabilizedPointer } from '@stroke-stabilizer/react'
@@ -82,7 +82,7 @@ function DrawingCanvas() {
 
 ### useStabilizationLevel
 
-A hook for managing stabilization level state.
+安定化レベルの状態管理用フックです。
 
 ```tsx
 import { useStabilizationLevel } from '@stroke-stabilizer/react'
@@ -102,7 +102,7 @@ function StabilizationSlider() {
         onChange={(e) => setLevel(Number(e.target.value))}
       />
       <span>{level}%</span>
-      {isEnabled && <span>Stabilization enabled</span>}
+      {isEnabled && <span>手ぶれ補正有効</span>}
     </div>
   )
 }
@@ -112,44 +112,44 @@ function StabilizationSlider() {
 
 ### useStabilizedPointer(options?)
 
-Creates a stabilized pointer instance.
+安定化ポインターインスタンスを作成します。
 
-**Options:**
+**オプション：**
 
-- `level` - Stabilization level (0-100). Uses preset when specified
-- `filters` - Custom filter array. Used when level is not specified
-- `onPoint` - Callback when a point is processed
+- `level` - 安定化レベル（0-100）。指定時はプリセットを使用
+- `filters` - カスタムフィルター配列。level 未指定時に使用
+- `onPoint` - 点が処理されたときのコールバック
 
-**Returns:**
+**戻り値：**
 
-- `process(point)` - Process a single point
-- `processAll(points)` - Process multiple points
-- `flushBuffer()` - Flush internal buffer
-- `reset()` - Reset the pointer state
-- `addFilter(filter)` - Add a filter dynamically
-- `removeFilter(type)` - Remove a filter by type
-- `updateFilter(type, params)` - Update filter parameters
-- `pointer` - Reference to the StabilizedPointer instance
+- `process(point)` - 単一の点を処理
+- `processAll(points)` - 複数の点を処理
+- `flushBuffer()` - 内部バッファをフラッシュ
+- `reset()` - ポインター状態をリセット
+- `addFilter(filter)` - フィルターを動的に追加
+- `removeFilter(type)` - タイプでフィルターを削除
+- `updateFilter(type, params)` - フィルターパラメータを更新
+- `pointer` - StabilizedPointer インスタンスへの参照
 
 ### useStabilizationLevel(options?)
 
-Manages stabilization level state.
+安定化レベルの状態を管理します。
 
-**Options:**
+**オプション：**
 
-- `initialLevel` - Initial level (default: 0)
-- `min` - Minimum level (default: 0)
-- `max` - Maximum level (default: 100)
-- `onChange` - Callback when level changes
+- `initialLevel` - 初期レベル（デフォルト: 0）
+- `min` - 最小レベル（デフォルト: 0）
+- `max` - 最大レベル（デフォルト: 100）
+- `onChange` - レベル変更時のコールバック
 
-**Returns:**
+**戻り値：**
 
-- `level` - Current level
-- `setLevel(value)` - Set the level
-- `increase(amount?)` - Increase level by amount (default: 10)
-- `decrease(amount?)` - Decrease level by amount (default: 10)
-- `isEnabled` - Whether stabilization is active (level > 0)
+- `level` - 現在のレベル
+- `setLevel(value)` - レベルを設定
+- `increase(amount?)` - レベルを増加（デフォルト: 10）
+- `decrease(amount?)` - レベルを減少（デフォルト: 10）
+- `isEnabled` - 安定化が有効かどうか（level > 0）
 
-## License
+## ライセンス
 
 [MIT](../../LICENSE)

@@ -1,7 +1,10 @@
 # @stroke-stabilizer/vue
+
 [![npm version](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)
 
-> Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+[日本語](./docs/README.ja.md)
+
+> This is part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
 
 Vue composables for stroke stabilization in digital drawing applications.
 

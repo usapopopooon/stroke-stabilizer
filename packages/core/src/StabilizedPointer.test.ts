@@ -285,6 +285,81 @@ describe('StabilizedPointer', () => {
     })
   })
 
+  describe('applyPostProcess', () => {
+    it('should return buffer when no post processors', () => {
+      pointer.process(createPoint(0, 0, 0))
+      pointer.process(createPoint(10, 10, 100))
+      pointer.process(createPoint(20, 20, 200))
+
+      const result = pointer.applyPostProcess()
+
+      expect(result.length).toBe(3)
+      expect(result[0].x).toBe(0)
+      expect(result[1].x).toBe(10)
+      expect(result[2].x).toBe(20)
+    })
+
+    it('should apply post processors', () => {
+      pointer.addPostProcess(boxKernel({ size: 3 }))
+
+      // Zigzag pattern
+      pointer.process(createPoint(0, 0, 0))
+      pointer.process(createPoint(10, 20, 100))
+      pointer.process(createPoint(20, 0, 200))
+
+      const result = pointer.applyPostProcess()
+
+      expect(result.length).toBe(3)
+      // Should be smoothed
+      expect(result[1].y).toBeGreaterThan(0)
+      expect(result[1].y).toBeLessThan(20)
+    })
+
+    it('should preserve buffer after applyPostProcess', () => {
+      pointer.process(createPoint(10, 10, 0))
+      pointer.process(createPoint(20, 20, 100))
+
+      pointer.applyPostProcess()
+
+      // Buffer should still exist
+      expect(pointer.getBuffer().length).toBe(2)
+    })
+
+    it('should allow re-applying with different post processors', () => {
+      pointer.process(createPoint(0, 0, 0))
+      pointer.process(createPoint(10, 100, 100)) // Spike
+      pointer.process(createPoint(20, 0, 200))
+
+      // First application with box kernel
+      pointer.addPostProcess(boxKernel({ size: 3 }))
+      const result1 = pointer.applyPostProcess()
+      const y1 = result1[1].y
+
+      // Change to gaussian kernel and re-apply
+      pointer.removePostProcess('box')
+      pointer.addPostProcess(gaussianKernel({ size: 3 }))
+      const result2 = pointer.applyPostProcess()
+      const y2 = result2[1].y
+
+      // Both should be smoothed but may differ slightly
+      expect(y1).toBeLessThan(100)
+      expect(y2).toBeLessThan(100)
+      // Buffer still intact
+      expect(pointer.getBuffer().length).toBe(3)
+    })
+
+    it('should flush pending batch before applying', () => {
+      pointer.enableBatching()
+      pointer.queue(createPoint(0, 0, 0))
+      pointer.queue(createPoint(10, 10, 100))
+
+      const result = pointer.applyPostProcess()
+
+      expect(result.length).toBe(2)
+      expect(pointer.pendingCount).toBe(0)
+    })
+  })
+
   describe('finish', () => {
     it('should return buffer when no post processors', () => {
       pointer.process(createPoint(0, 0, 0))

@@ -1,5 +1,7 @@
 # stroke-stabilizer
 
+[日本語](./docs/README.ja.md)
+
 A monorepo for stroke stabilization libraries for digital drawing applications.
 
 ## Packages
@@ -12,7 +14,7 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 
 ## Features
 
-- **Dynamic Pipeline Pattern** - Add, remove, and update filters at runtime
+- **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime
 - **Two-layer Processing** - Real-time filters + post-processing convolution
 - **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter

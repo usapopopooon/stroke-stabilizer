@@ -236,10 +236,26 @@ export class StabilizedPointer {
   }
 
   /**
-   * Finish the stroke and return post-processed results
-   * Buffer is cleared and filters are reset
+   * Apply post-processors to the current buffer without resetting
+   *
+   * Use this to preview or re-apply post-processing with different settings.
+   * The buffer is preserved, allowing multiple calls with different configurations.
+   *
+   * @example
+   * ```ts
+   * pointer.addPostProcess(gaussianKernel({ size: 5 }))
+   * const preview1 = pointer.applyPostProcess()
+   *
+   * // Change settings and re-apply
+   * pointer.removePostProcess('gaussian')
+   * pointer.addPostProcess(bilateralKernel({ size: 7, sigmaValue: 10 }))
+   * const preview2 = pointer.applyPostProcess()
+   *
+   * // Finalize when done
+   * const final = pointer.finish()
+   * ```
    */
-  finish(): Point[] {
+  applyPostProcess(): Point[] {
     // Flush any pending batched points first
     if (this.batchConfig) {
       this.flushBatch()
@@ -255,9 +271,16 @@ export class StabilizedPointer {
       })
     }
 
-    // Reset
-    this.reset()
+    return points
+  }
 
+  /**
+   * Finish the stroke and return post-processed results
+   * Buffer is cleared and filters are reset
+   */
+  finish(): Point[] {
+    const points = this.applyPostProcess()
+    this.reset()
     return points
   }
 
