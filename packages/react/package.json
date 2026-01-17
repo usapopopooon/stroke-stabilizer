@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "workspace:*"
+    "@stroke-stabilizer/core": "^0.2.11"
   },
   "peerDependencies": {
     "react": ">=17.0.0"

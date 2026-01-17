@@ -12,23 +12,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        run: corepack enable && corepack prepare pnpm@latest --activate
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Spell check
-        run: pnpm spell
+        run: npm run spell
 
       - name: Lint
-        run: pnpm lint
+        run: npm run lint
 
       - name: Format check
-        run: pnpm format:check
+        run: npm run format:check
 
       - name: Unit tests
-        run: pnpm test:run
+        run: npm run test:run
 
       - name: Build
-        run: pnpm build
+        run: npm run build

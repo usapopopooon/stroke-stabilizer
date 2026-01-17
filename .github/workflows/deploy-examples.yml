@@ -24,23 +24,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        run: corepack enable && corepack prepare pnpm@latest --activate
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Build core library
-        run: pnpm --filter @stroke-stabilizer/core build
+        run: npm run build --workspace=@stroke-stabilizer/core
 
       - name: Build vanilla example
-        run: pnpm --filter stroke-stabilizer-vanilla-example build
+        run: npm run build --workspace=stroke-stabilizer-vanilla-example
 
       - name: Build react example
-        run: pnpm --filter stroke-stabilizer-react-example build
+        run: npm run build --workspace=stroke-stabilizer-react-example
 
       - name: Build vue example
-        run: pnpm --filter stroke-stabilizer-vue-example build
+        run: npm run build --workspace=stroke-stabilizer-vue-example
 
       - name: Prepare deployment directory
         run: |

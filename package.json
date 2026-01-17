@@ -3,15 +3,18 @@
   "private": true,
   "version": "0.3.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "eslint packages",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "spell": "cspell \"**/*.md\" \"**/*.ts\" --no-progress"
   },
   "devDependencies": {

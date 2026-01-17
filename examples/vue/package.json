@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "workspace:*",
-    "@stroke-stabilizer/vue": "workspace:*",
+    "@stroke-stabilizer/core": "*",
+    "@stroke-stabilizer/vue": "*",
     "vue": "^3.5.0"
   },
   "devDependencies": {
