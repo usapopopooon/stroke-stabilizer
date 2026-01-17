@@ -9,14 +9,14 @@ import {
 
 export default function App() {
   const canvasRef = useRef(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [rawPoints, setRawPoints] = useState([])
-  const [stabilizedPoints, setStabilizedPoints] = useState([])
+  const isDrawingRef = useRef(false)
+  const rawPointsRef = useRef([])
+  const stabilizedPointsRef = useRef([])
   const lastRawPointRef = useRef(null)
   const animationIdRef = useRef(null)
-  const [completedStrokes, setCompletedStrokes] = useState([])
+  const completedStrokesRef = useRef([])
 
-  // Filter state
+  // Filter state (needs useState for UI updates)
   const [filterState, setFilterState] = useState({
     noise: { enabled: true, minDistance: 2.0 },
     kalman: { enabled: true, strength: 10 },
@@ -80,46 +80,48 @@ export default function App() {
     ctx.stroke()
   }, [])
 
-  const redraw = useCallback(
-    (raw, stabilized, strokes, drawing, lastRaw) => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+  const redraw = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Draw completed strokes
-      for (const stroke of strokes) {
-        drawLine(ctx, stroke.raw, 'rgba(255, 100, 100, 0.5)', 1)
-        drawLine(ctx, stroke.stabilized, '#4ade80', 2)
-      }
+    // Draw completed strokes
+    for (const stroke of completedStrokesRef.current) {
+      drawLine(ctx, stroke.raw, 'rgba(255, 100, 100, 0.5)', 1)
+      drawLine(ctx, stroke.stabilized, '#4ade80', 2)
+    }
 
-      // Draw current stroke
-      drawLine(ctx, raw, 'rgba(255, 100, 100, 0.5)', 1)
-      drawLine(ctx, stabilized, '#4ade80', 2)
+    // Draw current stroke
+    drawLine(ctx, rawPointsRef.current, 'rgba(255, 100, 100, 0.5)', 1)
+    drawLine(ctx, stabilizedPointsRef.current, '#4ade80', 2)
 
-      // Draw catch-up line
-      if (drawing && lastRaw && stabilized.length > 0) {
-        const lastStabilized = stabilized[stabilized.length - 1]
-        ctx.beginPath()
-        ctx.strokeStyle = '#60a5fa'
-        ctx.lineWidth = 2
-        ctx.lineCap = 'round'
-        ctx.setLineDash([4, 4])
-        ctx.moveTo(lastStabilized.x, lastStabilized.y)
-        ctx.lineTo(lastRaw.x, lastRaw.y)
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-    },
-    [drawLine]
-  )
+    // Draw catch-up line
+    if (
+      isDrawingRef.current &&
+      lastRawPointRef.current &&
+      stabilizedPointsRef.current.length > 0
+    ) {
+      const lastStabilized =
+        stabilizedPointsRef.current[stabilizedPointsRef.current.length - 1]
+      ctx.beginPath()
+      ctx.strokeStyle = '#60a5fa'
+      ctx.lineWidth = 2
+      ctx.lineCap = 'round'
+      ctx.setLineDash([4, 4])
+      ctx.moveTo(lastStabilized.x, lastStabilized.y)
+      ctx.lineTo(lastRawPointRef.current.x, lastRawPointRef.current.y)
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
+  }, [drawLine])
 
   const handlePointerDown = (e) => {
-    setIsDrawing(true)
+    isDrawingRef.current = true
     e.currentTarget.setPointerCapture(e.pointerId)
 
-    setRawPoints([])
-    setStabilizedPoints([])
+    rawPointsRef.current = []
+    stabilizedPointsRef.current = []
     pointerRef.current.reset()
 
     const point = {
@@ -130,31 +132,26 @@ export default function App() {
     }
 
     lastRawPointRef.current = point
-    setRawPoints([point])
+    rawPointsRef.current.push(point)
     const stabilized = pointerRef.current.process(point)
     if (stabilized) {
-      setStabilizedPoints([stabilized])
+      stabilizedPointsRef.current.push(stabilized)
     }
 
     // Start animation loop
     const animate = () => {
-      setRawPoints((raw) => {
-        setStabilizedPoints((stab) => {
-          setCompletedStrokes((strokes) => {
-            redraw(raw, stab, strokes, true, lastRawPointRef.current)
-            return strokes
-          })
-          return stab
-        })
-        return raw
-      })
+      if (!isDrawingRef.current) {
+        animationIdRef.current = null
+        return
+      }
+      redraw()
       animationIdRef.current = requestAnimationFrame(animate)
     }
     animationIdRef.current = requestAnimationFrame(animate)
   }
 
   const handlePointerMove = (e) => {
-    if (!isDrawing) return
+    if (!isDrawingRef.current) return
 
     const point = {
       x: e.nativeEvent.offsetX,
@@ -164,16 +161,16 @@ export default function App() {
     }
 
     lastRawPointRef.current = point
-    setRawPoints((prev) => [...prev, point])
+    rawPointsRef.current.push(point)
     const stabilized = pointerRef.current.process(point)
     if (stabilized) {
-      setStabilizedPoints((prev) => [...prev, stabilized])
+      stabilizedPointsRef.current.push(stabilized)
     }
   }
 
   const handlePointerUp = () => {
-    if (!isDrawing) return
-    setIsDrawing(false)
+    if (!isDrawingRef.current) return
+    isDrawingRef.current = false
 
     // Cancel animation loop
     if (animationIdRef.current) {
@@ -185,26 +182,21 @@ export default function App() {
     const smoothedPoints = pointerRef.current.finish()
     lastRawPointRef.current = null
 
-    setRawPoints((raw) => {
-      if (raw.length > 0 || smoothedPoints.length > 0) {
-        setCompletedStrokes((prev) => [
-          ...prev,
-          { raw: [...raw], stabilized: smoothedPoints },
-        ])
-      }
-      return []
-    })
-    setStabilizedPoints([])
+    // Save completed stroke
+    if (rawPointsRef.current.length > 0 || smoothedPoints.length > 0) {
+      completedStrokesRef.current.push({
+        raw: [...rawPointsRef.current],
+        stabilized: smoothedPoints,
+      })
+    }
 
-    // Final redraw
-    setCompletedStrokes((strokes) => {
-      redraw([], [], strokes, false, null)
-      return strokes
-    })
+    rawPointsRef.current = []
+    stabilizedPointsRef.current = []
+    redraw()
   }
 
   const handlePointerLeave = () => {
-    setIsDrawing(false)
+    isDrawingRef.current = false
     lastRawPointRef.current = null
     if (animationIdRef.current) {
       cancelAnimationFrame(animationIdRef.current)
@@ -217,9 +209,9 @@ export default function App() {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setCompletedStrokes([])
-    setRawPoints([])
-    setStabilizedPoints([])
+    completedStrokesRef.current = []
+    rawPointsRef.current = []
+    stabilizedPointsRef.current = []
     lastRawPointRef.current = null
   }
 
