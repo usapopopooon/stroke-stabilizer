@@ -5,11 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-17
+
+### Added
+
+#### @stroke-stabilizer/core
+
+- `finishWithoutReset()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
+- `reset()` is now documented as a public API for manually resetting filters and clearing the buffer
+
+#### Documentation
+
+- Filter reference documentation with mathematical formulas
+  - `docs/filters.md` (English)
+  - `docs/filters.ja.md` (Japanese)
+- Japanese README documentation for all packages
+  - `docs/README.ja.md` (root)
+  - `packages/core/docs/README.ja.md`
+  - `packages/react/docs/README.ja.md`
+  - `packages/vue/docs/README.ja.md`
+- Language switch links in all README files (English ↔ Japanese)
+
+#### Infrastructure
+
+- GitHub Actions CI workflow (Node.js 18, 20, 22 matrix)
+- cspell for spell checking
+
+### Changed
+
+- `finish()` now internally uses `finishWithoutReset()` for code reuse
+- Improved README wording for monorepo references
+
 ## [0.2.0] - 2026-01-15
 
 ### Added
 
 #### @stroke-stabilizer/core
+
 - **rAF Batch Processing** - requestAnimationFrame-based batching for high-frequency pointer events
   - `enableBatching(config)` - Enable batch processing with optional callbacks
   - `disableBatching()` - Disable batch processing (flushes pending points)
@@ -42,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### @stroke-stabilizer/core
+
 - **Dynamic Pipeline Pattern** - Flexible real-time filter chain architecture
 - **StabilizedPointer** - Main class for managing filter pipelines
 - **7 Built-in Filters:**
@@ -62,20 +95,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full TypeScript support with comprehensive type definitions
 
 #### @stroke-stabilizer/react
+
 - `useStabilizedPointer` - React hook for stroke stabilization
 - `useStabilizationLevel` - React hook for managing stabilization level state
 
 #### @stroke-stabilizer/vue
+
 - `useStabilizedPointer` - Vue composable for stroke stabilization
 - `useStabilizationLevel` - Vue composable for managing stabilization level state
 
 ### Infrastructure
+
 - pnpm monorepo with workspace support
 - Vite build system with dual CJS/ESM output
 - Vitest test framework (105 tests)
 - ESLint + Prettier configuration
 - TypeScript strict mode
 
+[0.3.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.3.0
 [0.2.0]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.2.0
 [0.1.2]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.2
 [0.1.1]: https://github.com/usapopopooon/stroke-stabilizer/releases/tag/v0.1.1

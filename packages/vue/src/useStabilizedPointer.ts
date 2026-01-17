@@ -1,4 +1,4 @@
-import { ref, shallowRef, computed, onUnmounted } from 'vue'
+import { ref, shallowRef, computed, onUnmounted, getCurrentInstance } from 'vue'
 import {
   StabilizedPointer,
   createStabilizedPointer,
@@ -114,10 +114,12 @@ export function useStabilizedPointer(
     return pointer.value.updateFilter(type, params)
   }
 
-  // Cleanup
-  onUnmounted(() => {
-    pointer.value.clear()
-  })
+  // Cleanup (only register if in component context)
+  if (getCurrentInstance()) {
+    onUnmounted(() => {
+      pointer.value.clear()
+    })
+  }
 
   return {
     process,

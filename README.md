@@ -1,18 +1,24 @@
 # stroke-stabilizer
 
+[日本語](./docs/README.ja.md)
+
 A monorepo for stroke stabilization libraries for digital drawing applications.
 
 ## Packages
 
-| Package | Version | Description |
-| ------- | ------- | ----------- |
-| [@stroke-stabilizer/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core) | Core library (vanilla JS) |
-| [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks |
-| [@stroke-stabilizer/vue](./packages/vue) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue) | Vue composables |
+| Package                                      | Version                                                                                                                     | Description               |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| [@stroke-stabilizer/core](./packages/core)   | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core)   | Core library (vanilla JS) |
+| [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks               |
+| [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables           |
+
+## Documentation
+
+- **[Filter Reference](./docs/filters.md)** - Detailed explanation of all filters and kernels with mathematical formulas
 
 ## Features
 
-- **Dynamic Pipeline Pattern** - Add, remove, and update filters at runtime
+- **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime
 - **Two-layer Processing** - Real-time filters + post-processing convolution
 - **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter

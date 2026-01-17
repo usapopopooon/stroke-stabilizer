@@ -1,7 +1,10 @@
 # @stroke-stabilizer/core
+
 [![npm version](https://img.shields.io/npm/v/@stroke-stabilizer/core.svg)](https://www.npmjs.com/package/@stroke-stabilizer/core)
 
-> Part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
+[日本語](./docs/README.ja.md)
+
+> This is part of the [stroke-stabilizer](https://github.com/usapopopooon/stroke-stabilizer) monorepo
 
 A lightweight, framework-agnostic stroke stabilization library for digital drawing applications.
 
@@ -9,7 +12,7 @@ Reduce hand tremor and smooth pen/mouse input in real-time using a flexible filt
 
 ## Features
 
-- **Dynamic Pipeline Pattern** - Add, remove, and update filters at runtime without rebuilding
+- **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime without rebuilding
 - **Two-layer Processing** - Real-time filters + post-processing convolution
 - **rAF Batch Processing** - Coalesce high-frequency pointer events into animation frames
 - **8 Built-in Filters** - From simple moving average to adaptive One Euro Filter
@@ -55,6 +58,8 @@ canvas.addEventListener('pointerup', () => {
 ```
 
 ## Filters
+
+> **📖 [Detailed Filter Reference](../../docs/filters.md)** - Mathematical formulas, technical explanations, and usage recommendations
 
 ### Real-time Filters
 
@@ -120,6 +125,46 @@ pointer.process(point)
 // After stroke ends, apply post-processing
 const finalPoints = pointer.finish()
 ```
+
+### Re-applying Post-processing
+
+Use `finishWithoutReset()` to preview or re-apply post-processing with different settings without losing the buffer.
+
+```ts
+import {
+  StabilizedPointer,
+  gaussianKernel,
+  bilateralKernel,
+} from '@stroke-stabilizer/core'
+
+const pointer = new StabilizedPointer()
+
+// Process points
+pointer.process(point1)
+pointer.process(point2)
+pointer.process(point3)
+
+// Preview with gaussian kernel
+pointer.addPostProcess(gaussianKernel({ size: 5 }))
+const preview1 = pointer.finishWithoutReset()
+draw(preview1)
+
+// Change to bilateral kernel and re-apply
+pointer.removePostProcess('gaussian')
+pointer.addPostProcess(bilateralKernel({ size: 7, sigmaValue: 10 }))
+const preview2 = pointer.finishWithoutReset()
+draw(preview2)
+
+// Finalize when satisfied (resets buffer)
+const final = pointer.finish()
+```
+
+**Difference between `finishWithoutReset()` and `finish()`:**
+
+| Method                 | Post-process | Reset buffer |
+| ---------------------- | ------------ | ------------ |
+| `finishWithoutReset()` | ✅           | ❌           |
+| `finish()`             | ✅           | ✅           |
 
 ### Edge-preserving Smoothing
 
@@ -274,8 +319,9 @@ class StabilizedPointer {
 
   // Processing
   process(point: PointerPoint): PointerPoint | null
-  finish(): Point[]
-  reset(): void
+  finish(): Point[] // Apply post-process and reset
+  finishWithoutReset(): Point[] // Apply post-process without reset (for preview)
+  reset(): void // Reset filters and clear buffer
 
   // Batch processing (rAF)
   enableBatching(config?: BatchConfig): this
