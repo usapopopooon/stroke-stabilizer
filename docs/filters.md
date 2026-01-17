@@ -61,6 +61,11 @@ Where $d$ is the Euclidean distance between consecutive points.
 | ------------- | ------ | ------- | ---------------------------------------- |
 | `minDistance` | number | 2       | Minimum distance (pixels) between points |
 
+**Guidelines:**
+
+- 2.0: Standard setting. Removes fine jitter while maintaining precision
+- 5.0+: For coarse input. May reduce point count too much
+
 **When to use:**
 
 - When input has micro-tremors or jitter
@@ -228,6 +233,20 @@ Where:
 | `processNoise`     | number | 0.1     | Expected variance in movement (Q)           |
 | `measurementNoise` | number | 0.5     | Expected variance in input measurements (R) |
 
+**Guidelines (when using strength 0-100):**
+
+The examples use a 0-100 strength value converted as follows:
+
+```ts
+const t = strength / 100
+processNoise: 1.0 - t * 0.9      // 1.0 → 0.1
+measurementNoise: 0.05 + t * 0.95 // 0.05 → 1.0
+```
+
+- strength 10: Light correction. Responsive with subtle vibration removal
+- strength 30-50: Standard setting. Balanced smoothing
+- strength 80+: Heavy correction. Noticeable lag but very smooth
+
 **Understanding the parameters:**
 
 - **High processNoise:** Expects rapid, unpredictable movement → more responsive
@@ -379,6 +398,12 @@ else:
 | -------------- | ------ | ------- | ------------------------------------- |
 | `stringLength` | number | 10      | Length of the virtual string (pixels) |
 
+**Guidelines:**
+
+- 5-10: Light correction. Natural follow-through feel
+- 15-30: Stronger correction. Smooth but noticeable lag
+- 50+: For calligraphy. Very deliberate strokes
+
 **Characteristics:**
 
 - **Deliberate lag:** Output intentionally follows behind
@@ -503,6 +528,12 @@ $$w_i = e^{-\frac{i^2}{2\sigma^2}}$$
 | --------- | ------ | ------- | ------------------------------------ |
 | `size`    | number | 5       | Kernel size (odd number)             |
 | `sigma`   | number | auto    | Standard deviation (default: size/6) |
+
+**Guidelines:**
+
+- size 3: Light correction. Preserves almost original shape
+- size 5-7: Standard setting. Moderately smooth
+- size 11+: Heavy correction. Corners tend to round off
 
 **Characteristics:**
 
@@ -643,6 +674,12 @@ Where:
 | `size`       | number | 5       | Kernel size (odd number)                  |
 | `sigmaSpace` | number | auto    | Spatial standard deviation                |
 | `sigmaValue` | number | 10      | Value standard deviation (edge threshold) |
+
+**Guidelines:**
+
+- size 5-7, sigmaValue 10: Standard setting. Smooth while preserving corners
+- size 9+, sigmaValue 5: Strong edge preservation. Corners remain nearly intact
+- size 11+, sigmaValue 20+: Approaches Gaussian behavior. Corners round off
 
 **Understanding sigmaValue:**
 
