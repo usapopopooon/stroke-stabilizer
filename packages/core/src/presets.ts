@@ -32,14 +32,17 @@ export function createStabilizedPointer(level: number): StabilizedPointer {
     return pointer
   }
 
+  // Scale: level 4 = max effect (t=1.0), level 100 = same as level 4
+  const t = Math.min(clampedLevel / 4, 1.0)
+
   // Level 1-100: Noise filter
-  const minDistance = 1.0 + (clampedLevel / 100) * 2.0 // 1.0-3.0
+  const minDistance = 1.0 + t * 2.0 // 1.0-3.0
   pointer.addFilter(noiseFilter({ minDistance }))
 
   if (clampedLevel >= 21) {
     // Level 21-100: Kalman filter
-    const processNoise = 0.12 - (clampedLevel / 100) * 0.08 // 0.12-0.04
-    const measurementNoise = 0.4 + (clampedLevel / 100) * 0.6 // 0.4-1.0
+    const processNoise = 0.12 - t * 0.08 // 0.12-0.04
+    const measurementNoise = 0.4 + t * 0.6 // 0.4-1.0
     pointer.addFilter(kalmanFilter({ processNoise, measurementNoise }))
   }
 
