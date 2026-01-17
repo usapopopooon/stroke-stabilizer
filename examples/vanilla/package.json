@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "^0.3.0"
+    "@stroke-stabilizer/core": "workspace:*"
   },
   "devDependencies": {
     "vite": "^5.4.0"

@@ -67,8 +67,14 @@ class KalmanFilterImpl implements UpdatableFilter<KalmanFilterParams> {
     // State update
     const newX = predictedX + K * innovationX
     const newY = predictedY + K * innovationY
-    const newVx = this.state.vx + (K * innovationX) / dt
-    const newVy = this.state.vy + (K * innovationY) / dt
+    // Velocity update: estimate velocity from innovation, with clamping to prevent explosion
+    // When direction changes rapidly, innovation/dt can become very large
+    const maxVelocity = 5000 // px/s - reasonable max for drawing
+    let newVx = this.state.vx + (K * innovationX) / dt
+    let newVy = this.state.vy + (K * innovationY) / dt
+    // Clamp velocity to prevent runaway values
+    newVx = Math.max(-maxVelocity, Math.min(maxVelocity, newVx))
+    newVy = Math.max(-maxVelocity, Math.min(maxVelocity, newVy))
     const newP = (1 - K) * predictedP
 
     this.state = {
