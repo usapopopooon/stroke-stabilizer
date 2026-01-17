@@ -1,6 +1,6 @@
 {
   "name": "@stroke-stabilizer/vue",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Vue composables for stroke stabilization",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stroke-stabilizer/core": "workspace:*"
+    "@stroke-stabilizer/core": "^0.2.10"
   },
   "peerDependencies": {
     "vue": ">=3.0.0"
