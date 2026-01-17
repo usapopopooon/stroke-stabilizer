@@ -33,12 +33,17 @@ function DrawingCanvas() {
   })
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    process({
-      x: e.clientX,
-      y: e.clientY,
-      pressure: e.pressure,
-      timestamp: e.timeStamp,
-    })
+    // IMPORTANT: Use getCoalescedEvents() for smoother input
+    const events = e.nativeEvent.getCoalescedEvents?.() ?? [e.nativeEvent]
+
+    for (const ce of events) {
+      process({
+        x: ce.offsetX,
+        y: ce.offsetY,
+        pressure: ce.pressure,
+        timestamp: ce.timeStamp,
+      })
+    }
   }
 
   const handlePointerUp = () => {

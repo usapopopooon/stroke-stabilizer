@@ -32,12 +32,17 @@ const { process, reset, pointer } = useStabilizedPointer({
 })
 
 function handlePointerMove(e: PointerEvent) {
-  process({
-    x: e.clientX,
-    y: e.clientY,
-    pressure: e.pressure,
-    timestamp: e.timeStamp,
-  })
+  // 重要: getCoalescedEvents() で滑らかな入力を取得
+  const events = e.getCoalescedEvents?.() ?? [e]
+
+  for (const ce of events) {
+    process({
+      x: ce.offsetX,
+      y: ce.offsetY,
+      pressure: ce.pressure,
+      timestamp: ce.timeStamp,
+    })
+  }
 }
 
 function handlePointerUp() {
