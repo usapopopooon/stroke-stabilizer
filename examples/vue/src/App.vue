@@ -325,6 +325,12 @@ body {
   padding: 20px;
 }
 
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 h1 {
   margin-bottom: 10px;
   font-size: 1.5rem;
