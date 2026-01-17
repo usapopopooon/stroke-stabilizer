@@ -59,6 +59,8 @@ canvas.addEventListener('pointerup', () => {
 
 ## フィルター
 
+> **📖 [フィルター詳細リファレンス](../../../docs/filters.ja.md)** - 数式、技術的な説明、使用推奨事項
+
 ### リアルタイムフィルター
 
 | フィルター               | 説明                     | 用途                         |
@@ -126,7 +128,7 @@ const finalPoints = pointer.finish()
 
 ### ポストプロセスの再適用
 
-`applyPostProcess()` を使用すると、バッファを失わずに異なる設定でポストプロセスをプレビューまたは再適用できます。
+`finishWithoutReset()` を使用すると、バッファを失わずに異なる設定でポストプロセスをプレビューまたは再適用できます。
 
 ```ts
 import {
@@ -144,25 +146,25 @@ pointer.process(point3)
 
 // ガウシアンカーネルでプレビュー
 pointer.addPostProcess(gaussianKernel({ size: 5 }))
-const preview1 = pointer.applyPostProcess()
+const preview1 = pointer.finishWithoutReset()
 draw(preview1)
 
 // バイラテラルカーネルに変更して再適用
 pointer.removePostProcess('gaussian')
 pointer.addPostProcess(bilateralKernel({ size: 7, sigmaValue: 10 }))
-const preview2 = pointer.applyPostProcess()
+const preview2 = pointer.finishWithoutReset()
 draw(preview2)
 
 // 満足したら確定（バッファをリセット）
 const final = pointer.finish()
 ```
 
-**`applyPostProcess()` と `finish()` の違い：**
+**`finishWithoutReset()` と `finish()` の違い：**
 
-| メソッド             | ポストプロセス | バッファリセット |
-| -------------------- | -------------- | ---------------- |
-| `applyPostProcess()` | ✅             | ❌               |
-| `finish()`           | ✅             | ✅               |
+| メソッド               | ポストプロセス | バッファリセット |
+| ---------------------- | -------------- | ---------------- |
+| `finishWithoutReset()` | ✅             | ❌               |
+| `finish()`             | ✅             | ✅               |
 
 ### エッジ保存スムージング
 
@@ -314,12 +316,12 @@ class StabilizedPointer {
   // ポストプロセス
   addPostProcess(kernel: Kernel, options?: { padding?: PaddingMode }): this
   removePostProcess(type: string): boolean
-  applyPostProcess(): Point[] // リセットなしで適用（プレビュー/再適用用）
 
   // 処理
   process(point: PointerPoint): PointerPoint | null
   finish(): Point[] // ポストプロセス適用してリセット
-  reset(): void
+  finishWithoutReset(): Point[] // リセットなしでポストプロセス適用（プレビュー用）
+  reset(): void // フィルターをリセットしてバッファをクリア
 
   // バッチ処理（rAF）
   enableBatching(config?: BatchConfig): this

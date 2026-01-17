@@ -11,10 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### @stroke-stabilizer/core
 
-- `applyPostProcess()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
+- `finishWithoutReset()` - Apply post-processors without resetting the buffer, enabling preview and re-application with different settings
+- `reset()` is now documented as a public API for manually resetting filters and clearing the buffer
 
 #### Documentation
 
+- Filter reference documentation with mathematical formulas
+  - `docs/filters.md` (English)
+  - `docs/filters.ja.md` (Japanese)
 - Japanese README documentation for all packages
   - `docs/README.ja.md` (root)
   - `packages/core/docs/README.ja.md`
@@ -22,9 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `packages/vue/docs/README.ja.md`
 - Language switch links in all README files (English ↔ Japanese)
 
+#### Infrastructure
+
+- GitHub Actions CI workflow (Node.js 18, 20, 22 matrix)
+- cspell for spell checking
+
 ### Changed
 
-- `finish()` now internally uses `applyPostProcess()` for code reuse
+- `finish()` now internally uses `finishWithoutReset()` for code reuse
 - Improved README wording for monorepo references
 
 ## [0.2.0] - 2026-01-15

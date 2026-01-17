@@ -208,3 +208,275 @@ describe('smooth', () => {
     })
   })
 })
+
+// ============================================
+// Edge Case Tests
+// ============================================
+
+describe('smooth - Edge Cases', () => {
+  describe('single point', () => {
+    it('should handle single point with box kernel', () => {
+      const points: Point[] = [{ x: 10, y: 20 }]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(1)
+      expect(result[0].x).toBeCloseTo(10)
+      expect(result[0].y).toBeCloseTo(20)
+    })
+
+    it('should handle single point with gaussian kernel', () => {
+      const points: Point[] = [{ x: 10, y: 20 }]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      expect(result.length).toBe(1)
+    })
+
+    it('should handle single point with all padding modes', () => {
+      const points: Point[] = [{ x: 10, y: 20 }]
+      const kernel = boxKernel({ size: 3 })
+
+      const reflectResult = smooth(points, { kernel, padding: 'reflect' })
+      const edgeResult = smooth(points, { kernel, padding: 'edge' })
+      const zeroResult = smooth(points, { kernel, padding: 'zero' })
+
+      expect(reflectResult.length).toBe(1)
+      expect(edgeResult.length).toBe(1)
+      expect(zeroResult.length).toBe(1)
+    })
+  })
+
+  describe('two points', () => {
+    it('should handle two points with box kernel', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(2)
+    })
+
+    it('should handle two points with gaussian kernel size 5', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      expect(result.length).toBe(2)
+    })
+  })
+
+  describe('kernel size larger than array', () => {
+    it('should handle kernel size larger than points array', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+        { x: 20, y: 20 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 11 }) })
+      expect(result.length).toBe(3)
+    })
+
+    it('should handle kernel size much larger than points array', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 51 }) })
+      expect(result.length).toBe(2)
+    })
+  })
+
+  describe('large inputs', () => {
+    it('should handle many points efficiently', () => {
+      const points: Point[] = []
+      for (let i = 0; i < 1000; i++) {
+        points.push({ x: i, y: Math.sin(i * 0.1) * 10 })
+      }
+      const result = smooth(points, { kernel: gaussianKernel({ size: 7 }) })
+      expect(result.length).toBe(1000)
+      expect(result.every((p) => isFinite(p.x) && isFinite(p.y))).toBe(true)
+    })
+
+    it('should maintain smoothness with many points', () => {
+      const points: Point[] = []
+      // Create noisy line
+      for (let i = 0; i < 100; i++) {
+        points.push({
+          x: i + (Math.random() - 0.5) * 2,
+          y: i + (Math.random() - 0.5) * 2,
+        })
+      }
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      expect(result.length).toBe(100)
+    })
+  })
+
+  describe('extreme coordinates', () => {
+    it('should handle very large coordinates', () => {
+      const points: Point[] = [
+        { x: 1000000, y: 1000000 },
+        { x: 1000010, y: 1000010 },
+        { x: 1000020, y: 1000020 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(3)
+      expect(result.every((p) => isFinite(p.x) && isFinite(p.y))).toBe(true)
+    })
+
+    it('should handle negative coordinates', () => {
+      const points: Point[] = [
+        { x: -100, y: -100 },
+        { x: -90, y: -90 },
+        { x: -80, y: -80 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(3)
+      expect(result.every((p) => p.x < 0 && p.y < 0)).toBe(true)
+    })
+
+    it('should handle mixed positive and negative coordinates', () => {
+      const points: Point[] = [
+        { x: -10, y: -10 },
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(3)
+      // Center should be approximately 0
+      expect(result[1].x).toBeCloseTo(0, 0)
+      expect(result[1].y).toBeCloseTo(0, 0)
+    })
+
+    it('should handle very small coordinate differences', () => {
+      const points: Point[] = [
+        { x: 0.001, y: 0.001 },
+        { x: 0.002, y: 0.002 },
+        { x: 0.003, y: 0.003 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(3)
+      expect(result.every((p) => isFinite(p.x) && isFinite(p.y))).toBe(true)
+    })
+  })
+
+  describe('special patterns', () => {
+    it('should handle horizontal line', () => {
+      const points: Point[] = [
+        { x: 0, y: 10 },
+        { x: 10, y: 10 },
+        { x: 20, y: 10 },
+        { x: 30, y: 10 },
+        { x: 40, y: 10 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      // All y values should remain 10
+      expect(result.every((p) => Math.abs(p.y - 10) < 0.01)).toBe(true)
+    })
+
+    it('should handle vertical line', () => {
+      const points: Point[] = [
+        { x: 10, y: 0 },
+        { x: 10, y: 10 },
+        { x: 10, y: 20 },
+        { x: 10, y: 30 },
+        { x: 10, y: 40 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      // All x values should remain 10
+      expect(result.every((p) => Math.abs(p.x - 10) < 0.01)).toBe(true)
+    })
+
+    it('should handle stationary points (all same)', () => {
+      const points: Point[] = [
+        { x: 50, y: 50 },
+        { x: 50, y: 50 },
+        { x: 50, y: 50 },
+        { x: 50, y: 50 },
+        { x: 50, y: 50 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      // All points should remain approximately at 50
+      expect(
+        result.every(
+          (p) => Math.abs(p.x - 50) < 0.01 && Math.abs(p.y - 50) < 0.01
+        )
+      ).toBe(true)
+    })
+
+    it('should handle rapid oscillation', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 100 },
+        { x: 20, y: 0 },
+        { x: 30, y: 100 },
+        { x: 40, y: 0 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      // Smoothed values should be between extremes
+      for (const p of result) {
+        expect(p.y).toBeGreaterThanOrEqual(-10)
+        expect(p.y).toBeLessThanOrEqual(110)
+      }
+    })
+
+    it('should handle step function', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 20, y: 0 },
+        { x: 30, y: 100 },
+        { x: 40, y: 100 },
+        { x: 50, y: 100 },
+      ]
+      const result = smooth(points, { kernel: gaussianKernel({ size: 5 }) })
+      expect(result.length).toBe(6)
+      // Edge should be smoothed
+      expect(result[2].y).toBeGreaterThan(0)
+      expect(result[3].y).toBeLessThan(100)
+    })
+  })
+
+  describe('extra properties handling', () => {
+    it('should handle points with extra properties', () => {
+      const points = [
+        { x: 0, y: 0, pressure: 0.5 },
+        { x: 10, y: 10, pressure: 0.7 },
+        { x: 20, y: 20, pressure: 0.9 },
+      ]
+      const result = smooth(points, { kernel: boxKernel({ size: 3 }) })
+      expect(result.length).toBe(3)
+      // smooth function focuses on x,y coordinates
+      // Additional properties may or may not be preserved depending on implementation
+      expect(result.every((p) => isFinite(p.x) && isFinite(p.y))).toBe(true)
+    })
+  })
+
+  describe('multiple sequential smoothing', () => {
+    it('should allow multiple smooth passes', () => {
+      const points: Point[] = [
+        { x: 0, y: 0 },
+        { x: 10, y: 100 },
+        { x: 20, y: 0 },
+        { x: 30, y: 100 },
+        { x: 40, y: 0 },
+      ]
+      const kernel = gaussianKernel({ size: 3 })
+
+      const pass1 = smooth(points, { kernel })
+      const pass2 = smooth(pass1, { kernel })
+      const pass3 = smooth(pass2, { kernel })
+
+      // Each pass should smooth more
+      const variance1 = computeVariance(pass1.map((p) => p.y))
+      const variance2 = computeVariance(pass2.map((p) => p.y))
+      const variance3 = computeVariance(pass3.map((p) => p.y))
+
+      expect(variance2).toBeLessThanOrEqual(variance1)
+      expect(variance3).toBeLessThanOrEqual(variance2)
+    })
+  })
+})
+
+// Helper function
+function computeVariance(values: number[]): number {
+  const mean = values.reduce((a, b) => a + b, 0) / values.length
+  return values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length
+}

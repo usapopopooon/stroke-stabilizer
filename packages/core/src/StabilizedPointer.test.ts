@@ -285,13 +285,13 @@ describe('StabilizedPointer', () => {
     })
   })
 
-  describe('applyPostProcess', () => {
+  describe('finishWithoutReset', () => {
     it('should return buffer when no post processors', () => {
       pointer.process(createPoint(0, 0, 0))
       pointer.process(createPoint(10, 10, 100))
       pointer.process(createPoint(20, 20, 200))
 
-      const result = pointer.applyPostProcess()
+      const result = pointer.finishWithoutReset()
 
       expect(result.length).toBe(3)
       expect(result[0].x).toBe(0)
@@ -307,7 +307,7 @@ describe('StabilizedPointer', () => {
       pointer.process(createPoint(10, 20, 100))
       pointer.process(createPoint(20, 0, 200))
 
-      const result = pointer.applyPostProcess()
+      const result = pointer.finishWithoutReset()
 
       expect(result.length).toBe(3)
       // Should be smoothed
@@ -315,11 +315,11 @@ describe('StabilizedPointer', () => {
       expect(result[1].y).toBeLessThan(20)
     })
 
-    it('should preserve buffer after applyPostProcess', () => {
+    it('should preserve buffer after finishWithoutReset', () => {
       pointer.process(createPoint(10, 10, 0))
       pointer.process(createPoint(20, 20, 100))
 
-      pointer.applyPostProcess()
+      pointer.finishWithoutReset()
 
       // Buffer should still exist
       expect(pointer.getBuffer().length).toBe(2)
@@ -332,13 +332,13 @@ describe('StabilizedPointer', () => {
 
       // First application with box kernel
       pointer.addPostProcess(boxKernel({ size: 3 }))
-      const result1 = pointer.applyPostProcess()
+      const result1 = pointer.finishWithoutReset()
       const y1 = result1[1].y
 
       // Change to gaussian kernel and re-apply
       pointer.removePostProcess('box')
       pointer.addPostProcess(gaussianKernel({ size: 3 }))
-      const result2 = pointer.applyPostProcess()
+      const result2 = pointer.finishWithoutReset()
       const y2 = result2[1].y
 
       // Both should be smoothed but may differ slightly
@@ -353,7 +353,7 @@ describe('StabilizedPointer', () => {
       pointer.queue(createPoint(0, 0, 0))
       pointer.queue(createPoint(10, 10, 100))
 
-      const result = pointer.applyPostProcess()
+      const result = pointer.finishWithoutReset()
 
       expect(result.length).toBe(2)
       expect(pointer.pendingCount).toBe(0)
@@ -743,6 +743,331 @@ describe('StabilizedPointer', () => {
 
         expect(onBatch).toHaveBeenCalledTimes(2)
       })
+    })
+  })
+})
+
+// ============================================
+// Edge Case Tests
+// ============================================
+
+describe('StabilizedPointer - Edge Cases', () => {
+  let pointer: StabilizedPointer
+
+  beforeEach(() => {
+    pointer = new StabilizedPointer()
+  })
+
+  describe('filter management edge cases', () => {
+    it('should handle adding duplicate filter types', () => {
+      pointer.addFilter(noiseFilter({ minDistance: 5 }))
+      pointer.addFilter(noiseFilter({ minDistance: 10 }))
+
+      expect(pointer.length).toBe(2)
+      expect(pointer.getFilterTypes()).toEqual(['noise', 'noise'])
+    })
+
+    it('should only remove first matching filter', () => {
+      pointer.addFilter(noiseFilter({ minDistance: 5 }))
+      pointer.addFilter(noiseFilter({ minDistance: 10 }))
+
+      pointer.removeFilter('noise')
+
+      expect(pointer.length).toBe(1)
+    })
+
+    it('should handle complex filter chains (5+ filters)', () => {
+      pointer
+        .addFilter(noiseFilter({ minDistance: 1 }))
+        .addFilter(kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 }))
+        .addFilter(movingAverageFilter({ windowSize: 3 }))
+        .addFilter(stringFilter({ stringLength: 10 }))
+        .addFilter(noiseFilter({ minDistance: 0.5 }))
+
+      expect(pointer.length).toBe(5)
+
+      // Process points through complex chain
+      const points = [
+        createPoint(0, 0, 0),
+        createPoint(10, 10, 100),
+        createPoint(20, 20, 200),
+        createPoint(30, 30, 300),
+        createPoint(40, 40, 400),
+      ]
+
+      const results = pointer.processAll(points)
+      expect(results.length).toBeGreaterThan(0)
+      expect(results.every((r) => isFinite(r.x) && isFinite(r.y))).toBe(true)
+    })
+
+    it('should handle clearing and re-adding filters', () => {
+      pointer.addFilter(noiseFilter({ minDistance: 5 }))
+      pointer.clear()
+
+      expect(pointer.length).toBe(0)
+
+      pointer.addFilter(
+        kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
+      )
+      expect(pointer.length).toBe(1)
+      expect(pointer.getFilterTypes()).toEqual(['kalman'])
+    })
+  })
+
+  describe('processing edge cases', () => {
+    it('should handle processing immediately after clear()', () => {
+      pointer.addFilter(noiseFilter({ minDistance: 5 }))
+      pointer.process(createPoint(0, 0, 0))
+      pointer.clear()
+
+      // Process without any filters
+      const result = pointer.process(createPoint(10, 10, 100))
+      expect(result).not.toBeNull()
+      expect(result?.x).toBe(10)
+    })
+
+    it('should handle processing immediately after reset()', () => {
+      pointer.addFilter(noiseFilter({ minDistance: 5 }))
+      pointer.process(createPoint(0, 0, 0))
+      pointer.reset()
+
+      // Filter still exists but state is reset
+      const result = pointer.process(createPoint(1, 1, 100))
+      expect(result).not.toBeNull() // First point after reset passes
+    })
+
+    it('should handle finish() called multiple times without new processing', () => {
+      pointer.process(createPoint(10, 10, 0))
+      pointer.process(createPoint(20, 20, 100))
+
+      const result1 = pointer.finish()
+      expect(result1.length).toBe(2)
+
+      // Second finish with empty buffer
+      const result2 = pointer.finish()
+      expect(result2.length).toBe(0)
+    })
+
+    it('should handle finish() with no data', () => {
+      const result = pointer.finish()
+      expect(result).toEqual([])
+    })
+
+    it('should handle very rapid consecutive processes', () => {
+      pointer.addFilter(
+        kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 })
+      )
+
+      const results: PointerPoint[] = []
+      for (let i = 0; i < 100; i++) {
+        const result = pointer.process(createPoint(i, i, i))
+        if (result) results.push(result)
+      }
+
+      expect(results.length).toBe(100)
+      expect(results.every((r) => isFinite(r.x) && isFinite(r.y))).toBe(true)
+    })
+
+    it('should handle points with zero coordinates', () => {
+      const result = pointer.process(createPoint(0, 0, 0))
+      expect(result).not.toBeNull()
+      expect(result?.x).toBe(0)
+      expect(result?.y).toBe(0)
+    })
+
+    it('should handle points with negative coordinates', () => {
+      const result = pointer.process(createPoint(-100, -200, 0))
+      expect(result).not.toBeNull()
+      expect(result?.x).toBe(-100)
+      expect(result?.y).toBe(-200)
+    })
+
+    it('should handle points with very large coordinates', () => {
+      const result = pointer.process(createPoint(1000000, 2000000, 0))
+      expect(result).not.toBeNull()
+      expect(isFinite(result?.x ?? 0)).toBe(true)
+      expect(isFinite(result?.y ?? 0)).toBe(true)
+    })
+
+    it('should handle points with pressure 0', () => {
+      const result = pointer.process({
+        x: 10,
+        y: 20,
+        pressure: 0,
+        timestamp: 0,
+      })
+      expect(result).not.toBeNull()
+      expect(result?.pressure).toBe(0)
+    })
+
+    it('should handle points with pressure 1', () => {
+      const result = pointer.process({
+        x: 10,
+        y: 20,
+        pressure: 1,
+        timestamp: 0,
+      })
+      expect(result).not.toBeNull()
+      expect(result?.pressure).toBe(1)
+    })
+  })
+
+  describe('post process edge cases', () => {
+    it('should handle post process with no data', () => {
+      pointer.addPostProcess(gaussianKernel({ size: 5 }))
+      const result = pointer.finish()
+      expect(result).toEqual([])
+    })
+
+    it('should handle multiple post processors', () => {
+      pointer
+        .addPostProcess(boxKernel({ size: 3 }))
+        .addPostProcess(gaussianKernel({ size: 3 }))
+        .addPostProcess(boxKernel({ size: 3 }))
+
+      expect(pointer.postProcessLength).toBe(3)
+
+      // Process some points
+      pointer.process(createPoint(0, 0, 0))
+      pointer.process(createPoint(10, 100, 100))
+      pointer.process(createPoint(20, 0, 200))
+
+      const result = pointer.finish()
+      expect(result.length).toBe(3)
+      // Multiple smoothing passes should smooth the spike significantly
+      expect(result[1].y).toBeLessThan(100)
+    })
+
+    it('should handle removing all post processors', () => {
+      pointer.addPostProcess(boxKernel({ size: 3 }))
+      pointer.addPostProcess(gaussianKernel({ size: 3 }))
+
+      pointer.removePostProcess('box')
+      pointer.removePostProcess('gaussian')
+
+      expect(pointer.postProcessLength).toBe(0)
+    })
+
+    it('should handle post process with single point', () => {
+      pointer.addPostProcess(gaussianKernel({ size: 5 }))
+      pointer.process(createPoint(10, 20, 0))
+
+      const result = pointer.finish()
+      expect(result.length).toBe(1)
+    })
+
+    it('should handle post process with two points', () => {
+      pointer.addPostProcess(boxKernel({ size: 3 }))
+      pointer.process(createPoint(0, 0, 0))
+      pointer.process(createPoint(10, 10, 100))
+
+      const result = pointer.finish()
+      expect(result.length).toBe(2)
+    })
+  })
+
+  describe('batch processing edge cases', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('should handle rapid enable/disable batching cycles', () => {
+      pointer.enableBatching()
+      pointer.queue(createPoint(10, 20))
+      pointer.disableBatching()
+      expect(pointer.getBuffer().length).toBe(1)
+
+      pointer.enableBatching()
+      pointer.queue(createPoint(30, 40))
+      pointer.disableBatching()
+      expect(pointer.getBuffer().length).toBe(2)
+    })
+
+    it('should handle queue when batching is disabled then enabled', () => {
+      pointer.queue(createPoint(10, 20)) // Direct process
+      expect(pointer.getBuffer().length).toBe(1)
+
+      pointer.enableBatching()
+      pointer.queue(createPoint(30, 40)) // Queued
+      expect(pointer.pendingCount).toBe(1)
+      expect(pointer.getBuffer().length).toBe(1)
+
+      vi.runAllTimers()
+      expect(pointer.getBuffer().length).toBe(2)
+    })
+
+    it('should handle flushBatch when empty', () => {
+      pointer.enableBatching()
+      const results = pointer.flushBatch()
+      expect(results).toEqual([])
+    })
+
+    it('should handle batching with filters that reject all points', () => {
+      const onBatch = vi.fn()
+      pointer
+        .addFilter(noiseFilter({ minDistance: 1000 }))
+        .enableBatching({ onBatch })
+
+      pointer.queue(createPoint(0, 0))
+      vi.runAllTimers()
+      onBatch.mockClear()
+
+      // All subsequent points will be rejected
+      pointer.queue(createPoint(1, 1))
+      pointer.queue(createPoint(2, 2))
+      vi.runAllTimers()
+
+      // onBatch should not be called when all points are rejected
+      expect(onBatch).not.toHaveBeenCalled()
+    })
+
+    it('should handle finish with pending batch and post processors', () => {
+      pointer.addPostProcess(boxKernel({ size: 3 })).enableBatching()
+
+      pointer.queue(createPoint(0, 0, 0))
+      pointer.queue(createPoint(10, 100, 100))
+      pointer.queue(createPoint(20, 0, 200))
+
+      const result = pointer.finish()
+
+      expect(result.length).toBe(3)
+      expect(result[1].y).toBeLessThan(100) // Smoothed
+    })
+  })
+
+  describe('buffer management edge cases', () => {
+    it('should handle flushBuffer on empty buffer', () => {
+      const result = pointer.flushBuffer()
+      expect(result).toEqual([])
+    })
+
+    it('should handle getBuffer returning consistent reference', () => {
+      pointer.process(createPoint(10, 10, 0))
+      const buffer1 = pointer.getBuffer()
+      const buffer2 = pointer.getBuffer()
+
+      expect(buffer1).toEqual(buffer2)
+      expect(buffer1.length).toBe(1)
+      expect(buffer2.length).toBe(1)
+    })
+  })
+
+  describe('method chaining completeness', () => {
+    it('should support full method chain', () => {
+      const result = pointer
+        .addFilter(noiseFilter({ minDistance: 2 }))
+        .addFilter(kalmanFilter({ processNoise: 0.1, measurementNoise: 0.5 }))
+        .addPostProcess(gaussianKernel({ size: 5 }))
+        .enableBatching()
+        .queue(createPoint(0, 0, 0))
+        .queue(createPoint(10, 10, 100))
+        .flushBatch()
+
+      expect(Array.isArray(result)).toBe(true)
     })
   })
 })

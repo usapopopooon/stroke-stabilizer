@@ -159,7 +159,19 @@ export class StabilizedPointer {
   }
 
   /**
-   * Reset all filters and buffer
+   * Reset all filters and clear the buffer
+   *
+   * Call this to prepare for a new stroke without destroying the pipeline configuration.
+   * Filters are reset to their initial state and the buffer is cleared.
+   *
+   * @example
+   * ```ts
+   * // After finishing a stroke
+   * const result = pointer.finish() // automatically calls reset()
+   *
+   * // Or manually reset without finishing
+   * pointer.reset()
+   * ```
    */
   reset(): void {
     for (const filter of this.filters) {
@@ -236,26 +248,26 @@ export class StabilizedPointer {
   }
 
   /**
-   * Apply post-processors to the current buffer without resetting
+   * Finish the stroke and return post-processed results, without resetting
    *
-   * Use this to preview or re-apply post-processing with different settings.
-   * The buffer is preserved, allowing multiple calls with different configurations.
+   * Use this when you want to get the final result but keep the buffer intact.
+   * Useful for previewing post-processing results or comparing different settings.
    *
    * @example
    * ```ts
    * pointer.addPostProcess(gaussianKernel({ size: 5 }))
-   * const preview1 = pointer.applyPostProcess()
+   * const preview1 = pointer.finishWithoutReset()
    *
    * // Change settings and re-apply
    * pointer.removePostProcess('gaussian')
    * pointer.addPostProcess(bilateralKernel({ size: 7, sigmaValue: 10 }))
-   * const preview2 = pointer.applyPostProcess()
+   * const preview2 = pointer.finishWithoutReset()
    *
    * // Finalize when done
    * const final = pointer.finish()
    * ```
    */
-  applyPostProcess(): Point[] {
+  finishWithoutReset(): Point[] {
     // Flush any pending batched points first
     if (this.batchConfig) {
       this.flushBatch()
@@ -276,10 +288,21 @@ export class StabilizedPointer {
 
   /**
    * Finish the stroke and return post-processed results
-   * Buffer is cleared and filters are reset
+   *
+   * This applies all post-processors to the buffer, then resets filters and clears the buffer.
+   * Use this at the end of a stroke to get the final smoothed result.
+   *
+   * @example
+   * ```ts
+   * // During drawing
+   * pointer.process(point)
+   *
+   * // On stroke end
+   * const finalStroke = pointer.finish()
+   * ```
    */
   finish(): Point[] {
-    const points = this.applyPostProcess()
+    const points = this.finishWithoutReset()
     this.reset()
     return points
   }

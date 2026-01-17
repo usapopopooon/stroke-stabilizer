@@ -59,6 +59,8 @@ canvas.addEventListener('pointerup', () => {
 
 ## Filters
 
+> **📖 [Detailed Filter Reference](../../docs/filters.md)** - Mathematical formulas, technical explanations, and usage recommendations
+
 ### Real-time Filters
 
 | Filter                   | Description                       | Use Case                           |
@@ -126,7 +128,7 @@ const finalPoints = pointer.finish()
 
 ### Re-applying Post-processing
 
-Use `applyPostProcess()` to preview or re-apply post-processing with different settings without losing the buffer.
+Use `finishWithoutReset()` to preview or re-apply post-processing with different settings without losing the buffer.
 
 ```ts
 import {
@@ -144,25 +146,25 @@ pointer.process(point3)
 
 // Preview with gaussian kernel
 pointer.addPostProcess(gaussianKernel({ size: 5 }))
-const preview1 = pointer.applyPostProcess()
+const preview1 = pointer.finishWithoutReset()
 draw(preview1)
 
 // Change to bilateral kernel and re-apply
 pointer.removePostProcess('gaussian')
 pointer.addPostProcess(bilateralKernel({ size: 7, sigmaValue: 10 }))
-const preview2 = pointer.applyPostProcess()
+const preview2 = pointer.finishWithoutReset()
 draw(preview2)
 
 // Finalize when satisfied (resets buffer)
 const final = pointer.finish()
 ```
 
-**Difference between `applyPostProcess()` and `finish()`:**
+**Difference between `finishWithoutReset()` and `finish()`:**
 
-| Method               | Post-process | Reset buffer |
-| -------------------- | ------------ | ------------ |
-| `applyPostProcess()` | ✅           | ❌           |
-| `finish()`           | ✅           | ✅           |
+| Method                 | Post-process | Reset buffer |
+| ---------------------- | ------------ | ------------ |
+| `finishWithoutReset()` | ✅           | ❌           |
+| `finish()`             | ✅           | ✅           |
 
 ### Edge-preserving Smoothing
 
@@ -314,12 +316,12 @@ class StabilizedPointer {
   // Post-processing
   addPostProcess(kernel: Kernel, options?: { padding?: PaddingMode }): this
   removePostProcess(type: string): boolean
-  applyPostProcess(): Point[] // Apply without reset (for preview/re-apply)
 
   // Processing
   process(point: PointerPoint): PointerPoint | null
   finish(): Point[] // Apply post-process and reset
-  reset(): void
+  finishWithoutReset(): Point[] // Apply post-process without reset (for preview)
+  reset(): void // Reset filters and clear buffer
 
   // Batch processing (rAF)
   enableBatching(config?: BatchConfig): this

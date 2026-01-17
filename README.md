@@ -12,6 +12,10 @@ A monorepo for stroke stabilization libraries for digital drawing applications.
 | [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks               |
 | [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables           |
 
+## Documentation
+
+- **[Filter Reference](./docs/filters.md)** - Detailed explanation of all filters and kernels with mathematical formulas
+
 ## Features
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - Add, remove, and update filters at runtime

@@ -12,6 +12,10 @@
 | [@stroke-stabilizer/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/react.svg)](https://www.npmjs.com/package/@stroke-stabilizer/react) | React hooks                  |
 | [@stroke-stabilizer/vue](./packages/vue)     | [![npm](https://img.shields.io/npm/v/@stroke-stabilizer/vue.svg)](https://www.npmjs.com/package/@stroke-stabilizer/vue)     | Vue composables              |
 
+## ドキュメント
+
+- **[フィルターリファレンス](./filters.ja.md)** - すべてのフィルターとカーネルの詳細な説明（数式付き）
+
 ## 特徴
 
 - **[Dynamic Pipeline Pattern](https://dev.to/usapopopooon/the-dynamic-pipeline-pattern-a-mutable-method-chaining-for-real-time-processing-16e1)** - ビルド不要で実行時にフィルターを追加・削除・更新
