@@ -98,10 +98,10 @@ Where:
 
 **Parameters:**
 
-| Parameter    | Type   | Default | Description                   |
-| ------------ | ------ | ------- | ----------------------------- |
-| `windowSize` | number | 5       | Number of points to average   |
-| `weights`    | array  | uniform | Optional custom weight array  |
+| Parameter    | Type   | Default | Description                  |
+| ------------ | ------ | ------- | ---------------------------- |
+| `windowSize` | number | 5       | Number of points to average  |
+| `weights`    | array  | uniform | Optional custom weight array |
 
 **Characteristics:**
 
@@ -153,9 +153,9 @@ Where:
 
 **Parameters:**
 
-| Parameter | Type   | Default | Description                                       |
-| --------- | ------ | ------- | ------------------------------------------------- |
-| `alpha`   | number | 0.5     | Smoothing factor (0-1). Higher = more responsive  |
+| Parameter | Type   | Default | Description                                      |
+| --------- | ------ | ------- | ------------------------------------------------ |
+| `alpha`   | number | 0.5     | Smoothing factor (0-1). Higher = more responsive |
 
 **Understanding alpha:**
 
@@ -228,10 +228,10 @@ Where:
 
 **Parameters:**
 
-| Parameter          | Type   | Default | Description                                |
-| ------------------ | ------ | ------- | ------------------------------------------ |
-| `processNoise`     | number | 0.1     | Expected variance in movement (Q)          |
-| `measurementNoise` | number | 0.5     | Expected variance in input measurements (R)|
+| Parameter          | Type   | Default | Description                                 |
+| ------------------ | ------ | ------- | ------------------------------------------- |
+| `processNoise`     | number | 0.1     | Expected variance in movement (Q)           |
+| `measurementNoise` | number | 0.5     | Expected variance in input measurements (R) |
 
 **Understanding the parameters:**
 
@@ -380,9 +380,9 @@ else:
 
 **Parameters:**
 
-| Parameter      | Type   | Default | Description                            |
-| -------------- | ------ | ------- | -------------------------------------- |
-| `stringLength` | number | 10      | Length of the virtual string (pixels)  |
+| Parameter      | Type   | Default | Description                           |
+| -------------- | ------ | ------- | ------------------------------------- |
+| `stringLength` | number | 10      | Length of the virtual string (pixels) |
 
 **Characteristics:**
 
@@ -504,10 +504,10 @@ $$w_i = e^{-\frac{i^2}{2\sigma^2}}$$
 
 **Parameters:**
 
-| Parameter | Type   | Default | Description                                 |
-| --------- | ------ | ------- | ------------------------------------------- |
-| `size`    | number | 5       | Kernel size (odd number)                    |
-| `sigma`   | number | auto    | Standard deviation (default: size/6)        |
+| Parameter | Type   | Default | Description                          |
+| --------- | ------ | ------- | ------------------------------------ |
+| `size`    | number | 5       | Kernel size (odd number)             |
+| `sigma`   | number | auto    | Standard deviation (default: size/6) |
 
 **Characteristics:**
 
@@ -643,11 +643,11 @@ Where:
 
 **Parameters:**
 
-| Parameter    | Type   | Default | Description                              |
-| ------------ | ------ | ------- | ---------------------------------------- |
-| `size`       | number | 5       | Kernel size (odd number)                 |
-| `sigmaSpace` | number | auto    | Spatial standard deviation               |
-| `sigmaValue` | number | 10      | Value standard deviation (edge threshold)|
+| Parameter    | Type   | Default | Description                               |
+| ------------ | ------ | ------- | ----------------------------------------- |
+| `size`       | number | 5       | Kernel size (odd number)                  |
+| `sigmaSpace` | number | auto    | Spatial standard deviation                |
+| `sigmaValue` | number | 10      | Value standard deviation (edge threshold) |
 
 **Understanding sigmaValue:**
 
@@ -708,11 +708,11 @@ Post-processing uses **bidirectional convolution**, applying the kernel in both 
 
 **Padding modes** handle edge effects:
 
-| Mode      | Description                          | Best for                |
-| --------- | ------------------------------------ | ----------------------- |
-| `reflect` | Mirror values at boundaries          | Most natural results    |
-| `edge`    | Repeat edge values                   | When reflection creates artifacts |
-| `zero`    | Pad with zeros                       | When edges should fade  |
+| Mode      | Description                 | Best for                          |
+| --------- | --------------------------- | --------------------------------- |
+| `reflect` | Mirror values at boundaries | Most natural results              |
+| `edge`    | Repeat edge values          | When reflection creates artifacts |
+| `zero`    | Pad with zeros              | When edges should fade            |
 
 **Example:**
 
