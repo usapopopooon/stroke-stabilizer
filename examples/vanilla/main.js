@@ -31,9 +31,9 @@ const postProcessValueDisplay = document.getElementById('postProcessValue')
 // Filter state
 const filterState = {
   noise: { enabled: true, minDistance: 2.0 },
-  kalman: { enabled: true, strength: 20 },
-  string: { enabled: true, stringLength: 15 },
-  postProcess: { enabled: true, size: 1 },
+  kalman: { enabled: true, strength: 10 },
+  string: { enabled: true, stringLength: 8 },
+  postProcess: { enabled: true, size: 3 },
 }
 
 // Create pointer with current filter settings
